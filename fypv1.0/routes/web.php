@@ -19,8 +19,16 @@ use App\Http\Controllers\ProfileController;
 
 Route::get('/', [MainController::class, 'index']);
 
+Route::get('/dashboard', [MainController::class, 'dashboard']);
+Route::get('/goal', [MainController::class, 'goal']);
 
+Route::get('/milestone', [MainController::class, 'milestone']);
+Route::get('/progressTracking', [MainController::class, 'progressTracking']);
+Route::get('/recommendation', [MainController::class, 'recommendation']);
+Route::get('/library', [MainController::class, 'library']);
+Route::get('/community', [MainController::class, 'community']);
 
+Route::get('/system', [MainController::class, 'system']);
 
 Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
 Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');

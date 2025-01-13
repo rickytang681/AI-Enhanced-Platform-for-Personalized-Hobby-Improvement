@@ -97,3 +97,64 @@ footer {
     font-size: 14px;
     text-align: center;
 }
+
+/* General Page Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Header Section */
+.logo h2 {
+    font-size: 28px;
+    font-weight: bold;
+    color: #007bff;
+    margin: 0;
+}
+
+.profile-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-select {
+    width: 120px;
+}
+
+/* Navigation Buttons */
+.btn-outline-primary {
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 5px;
+}
+
+/* Card Section */
+.card {
+    border: none;
+    border-radius: 8px;
+    background-color: #ffffff;
+}
+
+.card-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: #333;
+}
+
+/* Footer */
+footer {
+    margin-top: 30px;
+    font-size: 14px;
+    color: #6c757d;
+}
+
+footer a {
+    color: #6c757d;
+    text-decoration: none;
+}
+
+footer a:hover {
+    color: #007bff;
+    text-decoration: underline;
+}
