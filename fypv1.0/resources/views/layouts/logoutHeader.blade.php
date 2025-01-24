@@ -12,6 +12,9 @@
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}" defer></script>
 
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
@@ -24,7 +27,7 @@
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
             <div class="container">
                 <!-- Left Side - Direct to Dashboard -->
-                <a class="navbar-brand" href="{{ url('/dashboard') }}">
+                <a class="navbar-brand" href="{{ url('/home') }}">
                     {{ config('app.name', 'Hobby Improvement') }}
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
@@ -44,12 +47,28 @@
                             <!-- Remove Login and Register for Guests -->
                         @else
                             <!-- Add Logout for Authenticated Users -->
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('logout') }}"
-                                   onclick="event.preventDefault();
-                                             document.getElementById('logout-form').submit();">
-                                    {{ __('Logout') }}
+                            <li class="nav-item dropdown">
+                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                    {{ Auth::user()->name }}
                                 </a>
+
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <!-- Profile Link -->
+                                    <li>
+                                        <a class="dropdown-item" href="/profile">
+                                            {{ __('Profile') }}
+                                        </a>
+                                    </li>
+                                    <!-- Logout Link -->
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('logout') }}"
+                                        onclick="event.preventDefault();
+                                                    document.getElementById('logout-form').submit();">
+                                            {{ __('Logout') }}
+                                        </a>
+                                    </li>
+                                </ul>
+
                                 <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                                     @csrf
                                 </form>
@@ -60,9 +79,29 @@
             </div>
         </nav>
 
+        <!-- Navigation Buttons -->
+        <div class="container mt-3">
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                <a href="home" class="btn btn-outline-primary">Dashboard</a>
+                <a href="recommendation" class="btn btn-outline-primary">Recommendations</a>
+                <a href="goal" class="btn btn-outline-primary">Goals</a>
+                <a href="library" class="btn btn-outline-primary">Resource Library</a>
+                <a href="progressTracking" class="btn btn-outline-primary">Progress Tracking</a>
+                <a href="milestone" class="btn btn-outline-primary">Milestones</a>
+                <a href="community" class="btn btn-outline-primary">Community</a>
+                @if (auth()->user()->isAdmin())
+                    <a href="system" class="btn btn-outline-primary">System Administration</a>
+                @endif
+            </div>
+        </div>
+
         <main class="py-4">
             @yield('content')
         </main>
     </div>
+
+    <!-- Bootstrap JS (including Popper.js for dropdowns) -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 </body>
 </html>

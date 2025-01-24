@@ -13,7 +13,7 @@
 
                         {{-- Username/Email Input --}}
                         <div class="row mb-3">
-                            <label for="email" class="col-md-12 col-form-label">{{ __('Username/Email:') }}</label>
+                            <label for="email" class="col-md-12 col-form-label">{{ __('Email:') }}</label>
                             <div class="col-md-12">
                                 <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
                                 @error('email')

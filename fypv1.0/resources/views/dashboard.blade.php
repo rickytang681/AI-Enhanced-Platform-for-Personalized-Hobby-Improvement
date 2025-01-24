@@ -14,29 +14,15 @@
 </head>
 <body>
     <div class="container mt-4">
-        <!-- Navigation Bar -->
-        <header class="d-flex justify-content-between align-items-center mb-4">
-            <div class="logo">
-                <h2>Logo</h2>
-            </div>
-            <div class="profile-dropdown">
-                <img src="https://via.placeholder.com/50" alt="User Profile Picture" class="rounded-circle">
-                <form action="{{ route('logout') }}" method="POST" class="d-inline">
-                    @csrf
-                    <button type="submit" class="btn btn-link p-0">Logout</button>
-                </form>
-            </div>
-        </header>
-
         <!-- Navigation Buttons -->
         <div class="d-flex flex-wrap gap-2 mb-4">
             <a href="home" class="btn btn-outline-primary">Dashboard</a>
             <a href="recommendation" class="btn btn-outline-primary">Recommendations</a>
             <a href="goal" class="btn btn-outline-primary">Goals</a>
             <a href="library" class="btn btn-outline-primary">Resource Library</a>
-            <a href="progresdTracking" class="btn btn-outline-primary">Progress Tracking</a>
+            <a href="progressTracking" class="btn btn-outline-primary">Progress Tracking</a>
             <a href="milestone" class="btn btn-outline-primary">Milestones</a>
-            <a href="Community" class="btn btn-outline-primary">Community</a>
+            <a href="community" class="btn btn-outline-primary">Community</a>
             @if (auth()->user()->isAdmin())
                 <a href="system" class="btn btn-outline-primary">System Administration</a>
             @endif
