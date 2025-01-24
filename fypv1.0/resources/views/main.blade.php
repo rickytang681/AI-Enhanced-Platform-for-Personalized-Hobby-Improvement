@@ -58,7 +58,7 @@
                         <button type="submit" class="btn btn-custom w-100">Login</button>
                     </form>
                     <div class="text-center mt-3">
-                        <a href="#" class="text-decoration-none">Register</a> | 
+                        <a href="register" class="text-decoration-none">Register</a> | 
                         <a href="#" class="text-decoration-none">Forgot Password?</a>
                     </div>
                 </div>

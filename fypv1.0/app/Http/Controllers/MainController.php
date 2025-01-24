@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use app\Models\Hobby;
+use app\Models\Recommendation;
 
 class MainController extends Controller
 {
@@ -15,6 +17,8 @@ class MainController extends Controller
     {
         return view('dashboard');
     }
+    
+
 
     public function goal()
     {

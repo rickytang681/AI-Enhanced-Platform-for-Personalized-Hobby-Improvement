@@ -14,15 +14,15 @@ class CreateUsersTable extends Migration
     public function up()
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->string('profile_picture')->nullable();
-            $table->string('role')->default('user');
-            $table->rememberToken();
-            $table->timestamps();
+            $table->id(); // Primary key
+            $table->string('name'); // User's name
+            $table->string('email')->unique(); // User's email, must be unique
+            $table->timestamp('email_verified_at')->nullable(); // Email verification timestamp
+            $table->string('password'); // User's password
+            $table->string('profile_picture')->nullable(); // Profile picture, optional
+            $table->string('role')->default('user'); // Role column with a default value of 'user'
+            $table->rememberToken(); // Token for "remember me" functionality
+            $table->timestamps(); // Created at and updated at timestamps
         });
     }
 
@@ -33,6 +33,6 @@ class CreateUsersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('users'); // Drop the table if it exists
     }
 }
