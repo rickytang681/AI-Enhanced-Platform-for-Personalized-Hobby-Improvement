@@ -14,21 +14,6 @@
 </head>
 <body>
     <div class="container mt-4">
-        <!-- Navigation Buttons -->
-        <div class="d-flex flex-wrap gap-2 mb-4">
-            <a href="home" class="btn btn-outline-primary">Dashboard</a>
-            <a href="recommendation" class="btn btn-outline-primary">Recommendations</a>
-            <a href="goal" class="btn btn-outline-primary">Goals</a>
-            <a href="library" class="btn btn-outline-primary">Resource Library</a>
-            <a href="progressTracking" class="btn btn-outline-primary">Progress Tracking</a>
-            <a href="milestone" class="btn btn-outline-primary">Milestones</a>
-            <a href="community" class="btn btn-outline-primary">Community</a>
-            @if (auth()->user()->isAdmin())
-                <a href="system" class="btn btn-outline-primary">System Administration</a>
-            @endif
-        </div>
-
-
         <!-- Dashboard Sections -->
         <div class="row g-3">
             <div class="col-md-6">

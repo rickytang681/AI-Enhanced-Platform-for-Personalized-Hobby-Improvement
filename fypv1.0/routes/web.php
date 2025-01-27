@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MainController;
 use App\Http\Controllers\ProfileController;
 
+
 /*
 |--------------------------------------------------------------------------|
 | Web Routes                                                               |
@@ -33,5 +34,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 });
 
 // Profile routes
-Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+Route::get('/profile', [ProfileController::class, 'editProfile'])->name('profile.edit');
+Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');

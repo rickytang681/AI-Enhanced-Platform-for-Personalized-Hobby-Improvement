@@ -20,6 +20,9 @@ class CreateUsersTable extends Migration
             $table->timestamp('email_verified_at')->nullable(); // Email verification timestamp
             $table->string('password'); // User's password
             $table->string('profile_picture')->nullable(); // Profile picture, optional
+            $table->string('phone')->nullable(); // Phone number, optional
+            $table->string('hobbies')->nullable(); // User's hobbies, optional
+            $table->string('experience')->default('Beginner'); // Experience level with a default value
             $table->string('role')->default('user'); // Role column with a default value of 'user'
             $table->rememberToken(); // Token for "remember me" functionality
             $table->timestamps(); // Created at and updated at timestamps
