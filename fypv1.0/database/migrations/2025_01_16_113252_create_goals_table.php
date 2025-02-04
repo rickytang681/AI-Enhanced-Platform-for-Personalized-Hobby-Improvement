@@ -11,7 +11,7 @@ class CreateGoalsTable extends Migration
         Schema::create('goals', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('hobby_id')->constrained()->onDelete('cascade');
+            $table->string('hobby');
             $table->string('goal');
             $table->integer('progress')->default(0);
             $table->string('status')->default('in-progress'); // e.g., 'in-progress', 'completed'

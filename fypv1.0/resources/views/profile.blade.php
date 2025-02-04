@@ -24,7 +24,10 @@
             </div>
             <div class="mb-3">
                 <label for="profile_picture" class="form-label">Profile Picture:</label>
-                <input type="file" class="form-control" id="profile_picture" name="profile_picture">
+                <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                @error('profile_picture')
+                    <div class="text-danger">{{ $message }}</div>
+                @enderror
             </div>
             <div class="mb-3">
                 <label for="username" class="form-label">Username:</label>

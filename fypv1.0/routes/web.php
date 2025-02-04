@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MainController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\GoalsController;
 
 
 /*
@@ -37,3 +38,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
 Route::get('/profile', [ProfileController::class, 'editProfile'])->name('profile.edit');
 Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+
+Route::get('/goals', [GoalsController::class, 'create'])->name('goals.create');
+Route::post('/goals', [GoalsController::class, 'store'])->name('goals.store');
+Route::patch('/goals/{goal}/progress', [GoalsController::class, 'updateProgress'])->name('goals.update-progress');

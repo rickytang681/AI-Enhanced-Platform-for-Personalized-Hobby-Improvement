@@ -18,45 +18,90 @@
             <div class="col-md-6">
                 <div class="card p-4">
                     <h4 class="text-center mb-4">Goal Setting Section</h4>
-                    <form>
-                        <!-- Goal Title -->
+                    
+                    @if(session('success'))
+                        <div class="alert alert-success">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+
+                    @if($errors->any())
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form method="POST" action="{{ route('goals.store') }}">
+                        @csrf
+                        <!-- Goal -->
                         <div class="mb-3">
-                            <label for="goalTitle" class="form-label">Goal Title:</label>
-                            <input type="text" id="goalTitle" class="form-control" placeholder="XXX XXXX XXXXX" required>
+                            <label for="goal" class="form-label">Goal:</label>
+                            <input type="text" id="goal" name="goal" class="form-control" value="{{ old('goal') }}" required>
                         </div>
 
-                        <!-- Description -->
+                        <!-- Hobby Selection from User's Hobbies -->
                         <div class="mb-3">
-                            <label for="description" class="form-label">Description:</label>
-                            <textarea id="description" class="form-control" rows="4" placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean euismod bibendum laoreet..." required></textarea>
-                        </div>
+                            <label for="hobby" class="form-label">Related Hobby:</label>
+                            <select id="hobby" name="hobby" class="form-select" required>
 
-                        <!-- Target Date -->
-                        <div class="mb-3">
-                            <label for="targetDate" class="form-label">Target Date:</label>
-                            <input type="text" id="targetDate" class="form-control" placeholder="XX/XX/XXXX" required>
-                        </div>
-
-                        <!-- Priority Level -->
-                        <div class="mb-3">
-                            <label for="priorityLevel" class="form-label">Priority Level:</label>
-                            <select id="priorityLevel" class="form-select">
-                                <option value="Low">Low</option>
-                                <option value="Medium">Medium</option>
-                                <option value="High">High</option>
                             </select>
                         </div>
 
-                        <!-- Add New Goal Button -->
+                        <!-- Deadline -->
                         <div class="mb-3">
-                            <button type="button" class="btn btn-secondary w-100">Add New Goal</button>
+                            <label for="deadline" class="form-label">Deadline:</label>
+                            <input type="date" id="deadline" name="deadline" class="form-control" value="{{ old('deadline') }}">
                         </div>
 
-                        <!-- Save and Change Button -->
+                        <!-- Submit Button -->
                         <div class="mb-3">
-                            <button type="submit" class="btn btn-primary w-100">Save and Change</button>
+                            <button type="submit" class="btn btn-primary w-100">Save Goal</button>
                         </div>
                     </form>
+
+                    <!-- Display Existing Goals -->
+                    @if(isset($goals) && count($goals) > 0)
+                        <h5 class="mt-4">Your Goals</h5>
+                        @foreach($goals as $goal)
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ $goal->goal }}</h6>
+                                    <p class="card-text">Hobby: {{ $goal->hobby }}</p>
+                                    <div class="d-flex justify-content-between">
+                                        <small>Deadline: {{ $goal->deadline }}</small>
+                                        <span class="badge bg-{{ $goal->status == 'completed' ? 'success' : 'primary' }}">
+                                            {{ $goal->status }}
+                                        </span>
+                                    </div>
+                                    <div class="progress mt-2 mb-2">
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: {{ $goal->progress }}%"
+                                             aria-valuenow="{{ $goal->progress }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                            {{ $goal->progress }}%
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Progress Update Form -->
+                                    <form method="POST" action="{{ route('goals.update-progress', $goal) }}" class="mt-2">
+                                        @csrf
+                                        @method('PATCH')
+                                        <div class="input-group">
+                                            <input type="number" name="progress" class="form-control" 
+                                                   min="0" max="100" value="{{ $goal->progress }}"
+                                                   placeholder="Update progress">
+                                            <button type="submit" class="btn btn-outline-primary">Update</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
 
                     <!-- Footer Links -->
                     <div class="text-center mt-3">
@@ -64,8 +109,7 @@
                         <a href="#">Privacy Policy</a> |
                         <a href="#">Help</a> |
                         <a href="#">Contact Us</a> |
-                        <a href="#">About Us</a> |
-                        <a href="#">Logout</a>
+                        <a href="#">About Us</a>
                     </div>
                 </div>
             </div>
