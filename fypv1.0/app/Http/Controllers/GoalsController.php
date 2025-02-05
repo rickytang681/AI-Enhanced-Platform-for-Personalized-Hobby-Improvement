@@ -51,6 +51,7 @@ class GoalsController extends Controller
         return redirect()->back()->with('success', 'Goal created successfully!');
     }
 
+
     // Add method to update progress
     public function updateProgress(Request $request, Goal $goal)
     {

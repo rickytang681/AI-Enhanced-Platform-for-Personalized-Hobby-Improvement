@@ -7,15 +7,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Goal Setting Section</title>
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link href="style.css" rel="stylesheet">
 </head>
 <body>
     <div class="container mt-5">
         <div class="row justify-content-center">
-            <div class="col-md-6">
+            <div class="col-md-8">
                 <div class="card p-4">
                     <h4 class="text-center mb-4">Goal Setting Section</h4>
                     
@@ -37,18 +34,28 @@
 
                     <form method="POST" action="{{ route('goals.store') }}">
                         @csrf
+                        
                         <!-- Goal -->
                         <div class="mb-3">
                             <label for="goal" class="form-label">Goal:</label>
                             <input type="text" id="goal" name="goal" class="form-control" value="{{ old('goal') }}" required>
                         </div>
 
-                        <!-- Hobby Selection from User's Hobbies -->
+                        <!-- Hobby Input (Multiple Entries) -->
                         <div class="mb-3">
-                            <label for="hobby" class="form-label">Related Hobby:</label>
-                            <select id="hobby" name="hobby" class="form-select" required>
-
-                            </select>
+                            <label class="form-label">Hobbies & Experience Level:</label>
+                            <div id="hobby-container">
+                                <div class="hobby-entry mb-2 d-flex gap-2">
+                                    <input type="text" name="hobbies[]" class="form-control" placeholder="Enter Hobby" required>
+                                    <select name="experience[]" class="form-select" required>
+                                        <option value="Beginner">Beginner</option>
+                                        <option value="Intermediate">Intermediate</option>
+                                        <option value="Expert">Expert</option>
+                                    </select>
+                                    <button type="button" class="btn btn-danger remove-hobby">X</button>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-secondary mt-2" id="add-hobby">+ Add Hobby</button>
                         </div>
 
                         <!-- Deadline -->
@@ -70,7 +77,12 @@
                             <div class="card mb-3">
                                 <div class="card-body">
                                     <h6 class="card-title">{{ $goal->goal }}</h6>
-                                    <p class="card-text">Hobby: {{ $goal->hobby }}</p>
+                                    <p class="card-text">Hobbies:</p>
+                                    <ul>
+                                        @foreach(json_decode($goal->hobbies, true) as $hobby)
+                                            <li>{{ $hobby['name'] }} - <strong>{{ $hobby['experience'] }}</strong></li>
+                                        @endforeach
+                                    </ul>
                                     <div class="d-flex justify-content-between">
                                         <small>Deadline: {{ $goal->deadline }}</small>
                                         <span class="badge bg-{{ $goal->status == 'completed' ? 'success' : 'primary' }}">
@@ -102,21 +114,42 @@
                             </div>
                         @endforeach
                     @endif
-
-                    <!-- Footer Links -->
-                    <div class="text-center mt-3">
-                        <a href="#">Terms of Service</a> |
-                        <a href="#">Privacy Policy</a> |
-                        <a href="#">Help</a> |
-                        <a href="#">Contact Us</a> |
-                        <a href="#">About Us</a>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
+    <!-- JavaScript for Adding and Removing Hobbies -->
+    <script>
+        document.getElementById('add-hobby').addEventListener('click', function() {
+            let container = document.getElementById('hobby-container');
+            let entry = document.createElement('div');
+            entry.classList.add('hobby-entry', 'mb-2', 'd-flex', 'gap-2');
+
+            entry.innerHTML = `
+                <input type="text" name="hobbies[]" class="form-control" placeholder="Enter Hobby" required>
+                <select name="experience[]" class="form-select" required>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Expert">Expert</option>
+                </select>
+                <button type="button" class="btn btn-danger remove-hobby">X</button>
+            `;
+            
+            container.appendChild(entry);
+
+            entry.querySelector('.remove-hobby').addEventListener('click', function() {
+                entry.remove();
+            });
+        });
+
+        document.querySelectorAll('.remove-hobby').forEach(button => {
+            button.addEventListener('click', function() {
+                this.closest('.hobby-entry').remove();
+            });
+        });
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

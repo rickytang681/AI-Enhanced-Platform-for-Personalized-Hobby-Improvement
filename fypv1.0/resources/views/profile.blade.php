@@ -49,23 +49,6 @@
                 <input type="password" class="form-control" id="password" name="password" value="{{ old('password') }}">
                 <small class="text-muted">Leave empty if you don't want to change the password.</small>
             </div>
-            <div class="mb-3">
-                <label for="hobbies" class="form-label">Hobbies:</label>
-                <select class="form-select" id="hobbies" name="hobbies">
-                    <option value="Reading" {{ $user->hobbies == 'Reading' ? 'selected' : '' }}>Reading</option>
-                    <option value="Gaming" {{ $user->hobbies == 'Gaming' ? 'selected' : '' }}>Gaming</option>
-                    <option value="Cooking" {{ $user->hobbies == 'Cooking' ? 'selected' : '' }}>Cooking</option>
-                    <option value="Traveling" {{ $user->hobbies == 'Traveling' ? 'selected' : '' }}>Traveling</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="experience" class="form-label">Experience Level:</label>
-                <select class="form-select" id="experience" name="experience">
-                    <option value="Beginner" {{ $user->experience == 'Beginner' ? 'selected' : '' }}>Beginner</option>
-                    <option value="Intermediate" {{ $user->experience == 'Intermediate' ? 'selected' : '' }}>Intermediate</option>
-                    <option value="Advanced" {{ $user->experience == 'Advanced' ? 'selected' : '' }}>Advanced</option>
-                </select>
-            </div>
             <button type="submit" class="btn btn-save w-100">Save and Change</button>
         </form>
         <footer>
@@ -77,7 +60,7 @@
             <a href="{{ route('logout') }}">Logout</a>
         </footer>
     </div>
-
+    
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
