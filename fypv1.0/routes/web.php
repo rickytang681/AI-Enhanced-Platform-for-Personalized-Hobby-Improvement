@@ -18,7 +18,7 @@ use App\Http\Controllers\GoalsController;
 
 // Public routes
 Route::get('/', [MainController::class, 'index']);
-Route::get('/goal', [MainController::class, 'goal']);
+Route::get('/goal', [GoalsController::class, 'create'])->name('goals.create');
 Route::get('/milestone', [MainController::class, 'milestone']);
 Route::get('/progressTracking', [MainController::class, 'progressTracking']);
 Route::get('/recommendation', [MainController::class, 'recommendation']);

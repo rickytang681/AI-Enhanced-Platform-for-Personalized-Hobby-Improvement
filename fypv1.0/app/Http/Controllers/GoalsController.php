@@ -12,41 +12,63 @@ class GoalsController extends Controller
         // Get the authenticated user
         $user = auth()->user();
         
-        // Check if user has hobbies and convert to array
-        $userHobbies = [];
-        if ($user && $user->hobbies) {
-            $userHobbies = array_filter(explode(',', $user->hobbies)); // Remove empty values
+        if (!$user) {
+            return redirect()->route('login');
         }
 
-        // Get user's goals
-        $goals = Goal::where('user_id', auth()->id())
+        // Get user's goals with proper ordering
+        $goals = Goal::where('user_id', $user->id)
                     ->orderBy('created_at', 'desc')
                     ->get();
 
-        // If user has no hobbies, redirect with message
-        if (empty($userHobbies)) {
-            return redirect()->route('hobby')->with('error', 'Please select your hobbies first!');
+        // Check if user has hobbies and convert to array
+        $userHobbies = [];
+        if ($user->hobbies) {
+            $userHobbies = array_filter(explode(',', $user->hobbies));
         }
 
-        return view('goal', compact('userHobbies', 'goals'));
+        // Instead of redirecting, we'll show a message in the view
+        $showHobbyWarning = empty($userHobbies);
+
+        // Pass all variables to the view
+        return view('goal', [
+            'goals' => $goals,
+            'userHobbies' => $userHobbies,
+            'showHobbyWarning' => $showHobbyWarning
+        ]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'goal' => 'required|string|max:255',
-            'hobby' => 'required|string',
-            'deadline' => 'nullable|date',
+            'hobbies' => 'required|array|min:1',
+            'experience' => 'required|array|min:1',
+            'deadline' => 'nullable|date|after:today',
+            'notes' => 'nullable|string'
         ]);
 
-        Goal::create([
+        // Combine hobbies and experience levels
+        $hobbies = array_map(function($hobby, $experience) {
+            return [
+                'name' => $hobby,
+                'experience' => $experience
+            ];
+        }, $validated['hobbies'], $validated['experience']);
+
+        // Create the goal with explicit user_id
+        $goal = new Goal([
             'user_id' => auth()->id(),
-            'hobby' => $validated['hobby'],
+            'hobbies' => $hobbies,
             'goal' => $validated['goal'],
             'deadline' => $validated['deadline'],
+            'notes' => $request->notes,
             'progress' => 0,
             'status' => 'in-progress',
         ]);
+
+        // Save the goal
+        $goal->save();
 
         return redirect()->back()->with('success', 'Goal created successfully!');
     }

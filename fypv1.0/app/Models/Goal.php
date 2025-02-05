@@ -11,11 +11,17 @@ class Goal extends Model
 
     protected $fillable = [
         'user_id',
-        'hobby',
+        'hobbies',
         'goal',
         'progress',
         'status',
-        'deadline'
+        'deadline',
+        'notes'
+    ];
+
+    protected $casts = [
+        'hobbies' => 'array',
+        'deadline' => 'date'
     ];
 
     // Relationship with User
