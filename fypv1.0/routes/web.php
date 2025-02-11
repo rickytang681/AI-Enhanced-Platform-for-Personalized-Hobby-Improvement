@@ -1,44 +1,53 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\MainController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GoalController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\GoalsController;
+use App\Http\Controllers\LibraryController;
+use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\RecommendationController;
+use App\Http\Controllers\SystemController;
 
-
-/*
-|--------------------------------------------------------------------------|
-| Web Routes                                                               |
-|--------------------------------------------------------------------------|
-| Here is where you can register web routes for your application. These    |
-| routes are loaded by the RouteServiceProvider within a group which       |
-| contains the "web" middleware group. Now create something great!         |
-|--------------------------------------------------------------------------|
-*/
-
-// Public routes
-Route::get('/', [MainController::class, 'index']);
-Route::get('/goal', [GoalsController::class, 'create'])->name('goals.create');
-Route::get('/milestone', [MainController::class, 'milestone']);
-Route::get('/progressTracking', [MainController::class, 'progressTracking']);
-Route::get('/recommendation', [MainController::class, 'recommendation']);
-Route::get('/library', [MainController::class, 'library']);
-Route::get('/community', [MainController::class, 'community']);
-Route::get('/home', [MainController::class, 'dashboard']);
-
-// Authentication routes
+// Authentication Routes
 Auth::routes();
 
-// Admin routes
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/system', [MainController::class, 'system'])->name('system');
+// Guest Routes
+Route::get('/', function () {
+    return view('main');
+})->middleware('guest')->name('main');
+
+// Protected Routes
+Route::middleware(['auth'])->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::redirect('/home', '/dashboard');
+
+    // Goals
+    Route::controller(GoalController::class)->group(function () {
+        Route::get('/goals', 'index')->name('goals.index');
+        Route::post('/goals', 'store')->name('goals.store');
+        Route::patch('/goals/{goal}/progress', 'updateProgress')->name('goals.update-progress');
+        Route::post('/goals/{goal}/milestones', 'addMilestone')->name('goals.milestones.store');
+    });
+
+    // Profile
+    Route::controller(ProfileController::class)->group(function () {
+        Route::get('/profile', 'profile')->name('profile');
+        Route::post('/profile', 'update')->name('profile.update');
+    });
+
+    // Library
+    Route::get('/library', [LibraryController::class, 'index'])->name('library');
+
+    // Community
+    Route::get('/community', [CommunityController::class, 'index'])->name('community');
+
+    // Recommendations
+    Route::get('/recommendation', [RecommendationController::class, 'index'])->name('recommendation');
+
+    // Admin Routes
+    Route::middleware(['admin'])->group(function () {
+        Route::get('/system', [SystemController::class, 'index'])->name('system');
+    });
 });
-
-// Profile routes
-
-Route::get('/profile', [ProfileController::class, 'editProfile'])->name('profile.edit');
-Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
-
-Route::get('/goals', [GoalsController::class, 'create'])->name('goals.create');
-Route::post('/goals', [GoalsController::class, 'store'])->name('goals.store');
-Route::patch('/goals/{goal}/progress', [GoalsController::class, 'updateProgress'])->name('goals.update-progress');

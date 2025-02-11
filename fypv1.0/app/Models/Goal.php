@@ -35,4 +35,10 @@ class Goal extends Model
     {
         return $this->belongsTo(Hobby::class);
     }
+
+    // Relationship with Milestones
+    public function milestones()
+    {
+        return $this->hasMany(Milestone::class);
+    }
 }

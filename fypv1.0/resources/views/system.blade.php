@@ -1,109 +1,10 @@
 @extends('layouts.logoutHeader')
 
 @section('content')
-<!DOCTYPE html>
-<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>System Administration</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: #f4f4f9;
-    }
-    .container {
-      max-width: 1200px;
-      margin: auto;
-      background: #fff;
-      padding: 20px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-    h1, h2, h3 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .section {
-      margin-bottom: 30px;
-    }
-    .section h2 {
-      border-bottom: 2px solid #ddd;
-      padding-bottom: 5px;
-      margin-bottom: 15px;
-    }
-    .card {
-      background: #f9f9f9;
-      padding: 15px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-    }
-    .stat-box {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
-    }
-    .chart {
-      border: 1px solid #ddd;
-      height: 200px;
-      background: #e0e0e0;
-      text-align: center;
-      line-height: 200px;
-      color: #777;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-    table th, table td {
-      text-align: left;
-      border: 1px solid #ddd;
-      padding: 10px;
-    }
-    table th {
-      background-color: #f4f4f9;
-    }
-    input[type="text"] {
-      padding: 8px;
-      width: calc(100% - 20px);
-      margin-bottom: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
-    select {
-      padding: 5px;
-    }
-    .btn {
-      padding: 10px 15px;
-      background: #007bff;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .btn:hover {
-      background: #0056b3;
-    }
-    footer {
-      text-align: center;
-      margin-top: 30px;
-      font-size: 0.9rem;
-    }
-    footer a {
-      color: #007bff;
-      text-decoration: none;
-      margin: 0 10px;
-    }
-    footer a:hover {
-      text-decoration: underline;
-    }
-  </style>
+    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
 </head>
-<body>
-  <div class="container">
+<div class="container">
     <h1>System Administration</h1>
 
     <!-- User Overview Section -->
@@ -266,19 +167,5 @@
         </table>
       </div>
     </div>
-
-    <!-- Footer -->
-    <footer>
-      <p>
-        <a href="#">Terms of Service</a> |
-        <a href="#">Privacy Policy</a> |
-        <a href="#">Help</a> |
-        <a href="#">Contact Us</a> |
-        <a href="#">About Us</a> |
-        <a href="#">Logout</a>
-      </p>
-    </footer>
-  </div>
-</body>
-</html>
+</div>
 @endsection

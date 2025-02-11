@@ -5,36 +5,30 @@ namespace App\Http\Controllers;
 use App\Models\Goal;
 use Illuminate\Http\Request;
 
-class GoalsController extends Controller
+class GoalController extends Controller
 {
-    public function create()
+    public function __construct()
     {
-        // Get the authenticated user
-        $user = auth()->user();
-        
-        if (!$user) {
-            return redirect()->route('login');
-        }
+        $this->middleware('auth');
+    }
 
-        // Get user's goals with proper ordering
+    public function index()
+    {
+        $user = auth()->user();
         $goals = Goal::where('user_id', $user->id)
+                    ->with('milestones')
                     ->orderBy('created_at', 'desc')
                     ->get();
 
-        // Check if user has hobbies and convert to array
         $userHobbies = [];
         if ($user->hobbies) {
             $userHobbies = array_filter(explode(',', $user->hobbies));
         }
 
-        // Instead of redirecting, we'll show a message in the view
-        $showHobbyWarning = empty($userHobbies);
-
-        // Pass all variables to the view
         return view('goal', [
             'goals' => $goals,
             'userHobbies' => $userHobbies,
-            'showHobbyWarning' => $showHobbyWarning
+            'showHobbyWarning' => empty($userHobbies)
         ]);
     }
 
@@ -48,7 +42,6 @@ class GoalsController extends Controller
             'notes' => 'nullable|string'
         ]);
 
-        // Combine hobbies and experience levels
         $hobbies = array_map(function($hobby, $experience) {
             return [
                 'name' => $hobby,
@@ -56,8 +49,7 @@ class GoalsController extends Controller
             ];
         }, $validated['hobbies'], $validated['experience']);
 
-        // Create the goal with explicit user_id
-        $goal = new Goal([
+        $goal = Goal::create([
             'user_id' => auth()->id(),
             'hobbies' => $hobbies,
             'goal' => $validated['goal'],
@@ -67,27 +59,32 @@ class GoalsController extends Controller
             'status' => 'in-progress',
         ]);
 
-        // Save the goal
-        $goal->save();
-
         return redirect()->back()->with('success', 'Goal created successfully!');
     }
 
-
-    // Add method to update progress
     public function updateProgress(Request $request, Goal $goal)
     {
         $validated = $request->validate([
             'progress' => 'required|integer|min:0|max:100'
         ]);
 
-        $goal->progress = $validated['progress'];
-        // Automatically update status if progress is 100%
-        if ($goal->progress == 100) {
-            $goal->status = 'completed';
-        }
-        $goal->save();
+        $goal->update([
+            'progress' => $validated['progress'],
+            'status' => $validated['progress'] == 100 ? 'completed' : 'in-progress'
+        ]);
 
         return redirect()->back()->with('success', 'Progress updated successfully!');
+    }
+
+    public function addMilestone(Request $request, Goal $goal)
+    {
+        $validated = $request->validate([
+            'description' => 'required|string|max:255',
+            'due_date' => 'required|date|after_or_equal:today',
+        ]);
+
+        $goal->milestones()->create($validated);
+
+        return back()->with('success', 'Milestone added successfully');
     }
 } 

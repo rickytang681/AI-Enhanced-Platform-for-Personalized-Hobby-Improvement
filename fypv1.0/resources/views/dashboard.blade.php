@@ -1,62 +1,43 @@
 @extends('layouts.logoutHeader')
 
 @section('content')
-<!DOCTYPE html>
-<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post-Login Dashboard</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link href="style.css" rel="stylesheet">
+    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
 </head>
-<body>
-    <div class="container mt-4">
-        <!-- Dashboard Sections -->
-        <div class="row g-3">
-            <div class="col-md-6">
-                <div class="card shadow">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Recent Activities</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card shadow">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Progress Snapshot</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card shadow">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Recommendations</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card shadow">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Community Highlights</h5>
-                    </div>
+<div class="container mt-4">
+    <!-- Dashboard Sections -->
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Recent Activities</h5>
                 </div>
             </div>
         </div>
-
-        <!-- Footer -->
-        <footer class="mt-4 text-center">
-            <a href="#" class="text-decoration-none me-3">Terms of Service</a>
-            <a href="#" class="text-decoration-none me-3">Privacy Policy</a>
-            <a href="#" class="text-decoration-none me-3">Help</a>
-            <a href="#" class="text-decoration-none">Contact Us</a>
-        </footer>
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Progress Snapshot</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Recommendations</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Community Highlights</h5>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 
-    <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 @endsection

@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Goal Setting Section</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
 </head>
 <body>
     <div class="container mt-5">
@@ -158,6 +159,41 @@
                                                     {{ $goal->progress }}%
                                                 </div>
                                             </div>
+
+                                            <!-- Add Milestone Section -->
+                                            <div class="milestones-section mt-3">
+                                                <h6 class="mb-2">Milestones</h6>
+                                                
+                                                <!-- Display Existing Milestones -->
+                                                @if($goal->milestones && count($goal->milestones) > 0)
+                                                    <ul class="list-group mb-2">
+                                                        @foreach($goal->milestones as $milestone)
+                                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                                <div>
+                                                                    <input type="checkbox" 
+                                                                           class="form-check-input me-2 milestone-checkbox"
+                                                                           data-milestone-id="{{ $milestone->id }}"
+                                                                           {{ $milestone->completed ? 'checked' : '' }}>
+                                                                    {{ $milestone->description }}
+                                                                </div>
+                                                                <small class="text-muted">Due: {{ $milestone->due_date->format('Y-m-d') }}</small>
+                                                            </li>
+                                                        @endforeach
+                                                    </ul>
+                                                @endif
+
+                                                <!-- Add Milestone Form -->
+                                                <form method="POST" action="{{ route('goals.milestones.store', $goal) }}" class="milestone-form">
+                                                    @csrf
+                                                    <div class="input-group">
+                                                        <input type="text" name="description" class="form-control" 
+                                                               placeholder="Add a milestone" required>
+                                                        <input type="date" name="due_date" class="form-control"
+                                                               min="{{ date('Y-m-d') }}" required>
+                                                        <button type="submit" class="btn btn-outline-secondary">Add</button>
+                                                    </div>
+                                                </form>
+                                            </div>
                                             
                                             <!-- Progress Update Form -->
                                             <form method="POST" action="{{ route('goals.update-progress', $goal) }}" class="mt-2">
@@ -210,6 +246,32 @@
             // Update active button
             document.querySelectorAll('[data-filter]').forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
+        });
+    });
+
+    // Handle milestone checkbox clicks
+    document.querySelectorAll('.milestone-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const milestoneId = this.dataset.milestoneId;
+            const completed = this.checked;
+
+            fetch(`/milestones/${milestoneId}/toggle`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ completed })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update goal progress if needed
+                const progressBar = this.closest('.goal-card').querySelector('.progress-bar');
+                if (progressBar) {
+                    progressBar.style.width = `${data.goalProgress}%`;
+                    progressBar.textContent = `${data.goalProgress}%`;
+                }
+            });
         });
     });
     </script>

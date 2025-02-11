@@ -9,20 +9,27 @@
 
     <title>{{ config('app.name', 'Hobby Improvement') }}</title>
 
-    <!-- Scripts -->
-    <script src="{{ asset('js/app.js') }}" defer></script>
-
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
-
     <!-- Styles -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
+    
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize all dropdowns
+            var dropdownElementList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'))
+            var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+                return new bootstrap.Dropdown(dropdownToggleEl)
+            });
+        });
+    </script>
+
     <style>
         body {
             font-family: 'Nunito', sans-serif;
@@ -59,92 +66,111 @@
 </head>
 <body>
     <div id="app">
-        <nav class="navbar navbar-expand-md navbar-light shadow-sm">
+        <nav class="navbar navbar-expand-md shadow-sm">
             <div class="container">
-                <!-- Left Side - Brand -->
-                <a class="navbar-brand" href="{{ url('/home') }}">
-                    <i class="bi bi-lightbulb"></i> {{ config('app.name', 'Hobby Improvement') }}
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+                <!-- Top Row -->
+                <div class="w-100 d-flex justify-content-between align-items-center mb-2">
+                    <!-- Left Side - Brand and User Info -->
+                    <div class="d-flex align-items-center">
+                        <a class="navbar-brand" href="{{ url('/dashboard') }}">
+                            <i class="bi bi-lightbulb-fill text-primary"></i> 
+                            <span class="brand-text">{{ config('app.name', 'Hobby Improvement') }}</span>
+                        </a>
+                        @auth
+                            <div class="user-info ms-3 d-flex align-items-center">
+                                <img src="{{ Auth::user()->profile_picture ? asset('storage/' . Auth::user()->profile_picture) : asset('images/default-profile.png') }}" 
+                                     class="profile-image" 
+                                     alt="Profile Picture">
+                                <span class="ms-2 user-name">{{ Auth::user()->name }}</span>
+                            </div>
+                        @endauth
+                    </div>
 
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <!-- Right Side Of Navbar -->
-                    <ul class="navbar-nav ms-auto">
-                        <!-- Authentication Links -->
-                        @guest
-                            <!-- No links for guests -->
-                        @else
-                            <li class="nav-item dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <!-- Right Side - Navigation Links -->
+                    <div class="navbar-nav">
+                        <div class="d-flex align-items-center">
+                            <a href="{{ route('profile') }}" class="nav-link me-3">
+                                <div class="d-flex align-items-center">
                                     <img src="{{ Auth::user()->profile_picture ? asset('storage/' . Auth::user()->profile_picture) : asset('images/default-profile.png') }}" 
-                                         alt="Profile Picture" class="profile-image">
-                                    {{ Auth::user()->name }}
+                                         class="profile-image-small me-2" 
+                                         alt="Profile">
+                                    <span>Profile</span>
+                                </div>
+                            </a>
+                            <div class="vertical-divider"></div>
+                            <a href="{{ route('logout') }}" 
+                               class="nav-link text-danger ms-3"
+                               onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                <i class="bi bi-box-arrow-right me-2"></i>Logout
+                            </a>
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                @csrf
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Row - Main Navigation -->
+                <div class="w-100">
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav mx-auto">
+                            <li class="nav-item">
+                                <a class="nav-link {{ Request::is('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+                                    <i class="bi bi-house-door"></i> Dashboard
                                 </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <li>
-                                        <a class="dropdown-item" href="/profile">
-                                            <i class="bi bi-person"></i> Profile
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('logout') }}"
-                                           onclick="event.preventDefault();
-                                                     document.getElementById('logout-form').submit();">
-                                            <i class="bi bi-box-arrow-right"></i> Logout
-                                        </a>
-                                    </li>
-                                </ul>
-                                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                    @csrf
-                                </form>
                             </li>
-                        @endguest
-                    </ul>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Request::is('goals*') ? 'active' : '' }}" href="{{ route('goals.index') }}">
+                                    <i class="bi bi-trophy"></i> Goals
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Request::is('library') ? 'active' : '' }}" href="{{ route('library') }}">
+                                    <i class="bi bi-book"></i> Library
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Request::is('community') ? 'active' : '' }}" href="{{ route('community') }}">
+                                    <i class="bi bi-people"></i> Community
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Request::is('recommendation') ? 'active' : '' }}" href="{{ route('recommendation') }}">
+                                    <i class="bi bi-stars"></i> Recommendations
+                                </a>
+                            </li>
+                            @if(Auth::user()->role === 'admin')
+                            <li class="nav-item">
+                                <a class="nav-link {{ Request::is('system') ? 'active' : '' }}" href="{{ route('system') }}">
+                                    <i class="bi bi-gear"></i> System
+                                </a>
+                            </li>
+                            @endif
+                        </ul>
+                    </div>
                 </div>
             </div>
         </nav>
-
-        <!-- Navigation Buttons -->
-        <div class="container button-container">
-            <div class="d-flex flex-wrap gap-3 justify-content-center">
-                <a href="home" class="btn btn-outline-primary">
-                    <i class="bi bi-house-door"></i> Dashboard
-                </a>
-                <a href="recommendation" class="btn btn-outline-primary">
-                    <i class="bi bi-stars"></i> Recommendations
-                </a>
-                <a href="goal" class="btn btn-outline-primary">
-                    <i class="bi bi-flag"></i> Goals
-                </a>
-                <a href="library" class="btn btn-outline-primary">
-                    <i class="bi bi-bookshelf"></i> Resource Library
-                </a>
-                <a href="progressTracking" class="btn btn-outline-primary">
-                    <i class="bi bi-bar-chart-line"></i> Progress Tracking
-                </a>
-                <a href="milestone" class="btn btn-outline-primary">
-                    <i class="bi bi-award"></i> Milestones
-                </a>
-                <a href="community" class="btn btn-outline-primary">
-                    <i class="bi bi-people"></i> Community
-                </a>
-                @if (auth()->user()->isAdmin())
-                    <a href="system" class="btn btn-outline-primary">
-                        <i class="bi bi-gear"></i> System Administration
-                    </a>
-                @endif
-            </div>
-        </div>
 
         <main class="py-4">
             @yield('content')
         </main>
     </div>
-
-    <!-- Bootstrap JS (including Popper.js for dropdowns) -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    @include('layouts.footer')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdownButton = document.getElementById('dropdownMenuButton');
+            if (dropdownButton) {
+                dropdownButton.addEventListener('click', function() {
+                    const dropdownMenu = this.nextElementSibling;
+                    dropdownMenu.classList.toggle('show');
+                });
+            }
+        });
+    </script>
 </body>
 </html>
