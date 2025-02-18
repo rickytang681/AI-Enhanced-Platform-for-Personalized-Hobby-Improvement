@@ -30,7 +30,7 @@ class ProfileController extends Controller
             'email' => 'required|email|unique:users,email,' . $user->id,
             'phone' => 'nullable|string|max:20',
             'password' => 'nullable|min:8',
-            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:20048'
         ]);
 
         // Update basic info
@@ -46,12 +46,20 @@ class ProfileController extends Controller
         // Handle profile picture upload
         if ($request->hasFile('profile_picture')) {
             // Delete old profile picture if exists
-            if ($user->profile_picture) {
-                Storage::disk('public')->delete($user->profile_picture);
+            if ($user->profile_picture && file_exists(public_path('storage/' . $user->profile_picture))) {
+                unlink(public_path('storage/' . $user->profile_picture));
             }
             
-            $path = $request->file('profile_picture')->store('profile-pictures', 'public');
-            $user->profile_picture = $path;
+            // Create directory if it doesn't exist
+            $path = public_path('storage/profile-pictures');
+            if (!file_exists($path)) {
+                mkdir($path, 0777, true);
+            }
+            
+            // Store the new image
+            $fileName = time() . '.' . $request->profile_picture->extension();
+            $request->profile_picture->move($path, $fileName);
+            $user->profile_picture = 'profile-pictures/' . $fileName;
         }
 
         $user->save();

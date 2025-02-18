@@ -51,3 +51,4 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/system', [SystemController::class, 'index'])->name('system');
     });
 });
+

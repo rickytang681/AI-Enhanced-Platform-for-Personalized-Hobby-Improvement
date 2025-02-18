@@ -1,3 +1,6 @@
+@extends('layouts.app')
+
+@section('content')
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,24 +11,26 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="{{ asset('css/style.css') }}" rel="stylesheet">
+    <style>
+        /* Additional custom styles can go here */
+        body {
+            background-color: #f8f9fa; /* Example background color */
+        }
+        .card {
+            background-color: #fff; /* Example card background color */
+        }
+        .btn-custom {
+            background-color: #007bff; /* Example button color */
+            border-color: #007bff;
+        }
+        .btn-custom:hover {
+            background-color: #0056b3; /* Example hover color */
+            border-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
     <div class="container main-container">
-        <!-- Navigation Bar -->
-        <nav class="navbar navbar-expand-lg navbar-light bg-light rounded mb-4">
-            <a class="navbar-brand header-logo" href="#">Hobby Improvement</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">About</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
-                </ul>
-            </div>
-        </nav>
-
         <!-- Main Content -->
         <div class="row align-items-center">
             <!-- Left Section -->
@@ -87,16 +92,10 @@
                 </div>
             </div>
         </div>
-
-        <!-- Footer -->
-        <footer class="mt-4">
-            <a href="#" class="text-decoration-none me-3">Terms of Service</a>
-            <a href="#" class="text-decoration-none me-3">Privacy Policy</a>
-            <a href="#" class="text-decoration-none">Help</a>
-        </footer>
     </div>
 
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+@endsection

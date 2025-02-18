@@ -30,18 +30,3 @@ Vue.component('example-component', require('./components/ExampleComponent.vue').
 const app = new Vue({
     el: '#app',
 });
-
-// Initialize Bootstrap components
-document.addEventListener('DOMContentLoaded', function() {
-    // Dropdowns
-    var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
-    var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
-        return new bootstrap.Dropdown(dropdownToggleEl)
-    });
-
-    // Enable all tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl)
-    });
-});
