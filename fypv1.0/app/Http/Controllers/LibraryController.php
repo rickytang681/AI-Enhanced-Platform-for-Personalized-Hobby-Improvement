@@ -18,20 +18,48 @@ class LibraryController extends Controller
     {
         $query = LibraryItem::query();
 
-        // Apply search filter
+        // Full-text search with specified fields
         if ($request->search) {
-            $query->where(function($q) use ($request) {
-                $q->where('title', 'like', '%' . $request->search . '%')
-                  ->orWhere('description', 'like', '%' . $request->search . '%');
+            $searchTerm = $request->search;
+            $searchIn = $request->search_in ?? ['title', 'description']; // Default search fields
+
+            $query->where(function($q) use ($searchTerm, $searchIn) {
+                foreach ($searchIn as $field) {
+                    $q->orWhere($field, 'like', '%' . $searchTerm . '%');
+                }
             });
         }
 
-        // Apply category filter
+        // Date filter
+        if ($request->date_filter) {
+            switch ($request->date_filter) {
+                case 'today':
+                    $query->whereDate('created_at', today());
+                    break;
+                case 'week':
+                    $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+                    break;
+                case 'month':
+                    $query->whereMonth('created_at', now()->month)
+                          ->whereYear('created_at', now()->year);
+                    break;
+                case 'year':
+                    $query->whereYear('created_at', now()->year);
+                    break;
+            }
+        }
+
+        // Resource type filter
+        if ($request->type) {
+            $query->where('type', $request->type);
+        }
+
+        // Category filter
         if ($request->category) {
             $query->where('category', $request->category);
         }
 
-        // Apply subcategory filter
+        // Subcategory/Level filter
         if ($request->subcategory) {
             $query->where('subcategory', $request->subcategory);
         }
@@ -50,7 +78,7 @@ class LibraryController extends Controller
                 break;
         }
 
-        $items = $query->paginate(10);
+        $items = $query->with('user')->paginate(10)->withQueryString();
 
         return view('library', [
             'items' => $items,
@@ -65,13 +93,27 @@ class LibraryController extends Controller
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
                 'description' => 'required|string',
-                'category' => 'required|string',
+                'category' => 'required_without:new_category|string',
+                'new_category' => 'required_if:category,new|string|max:255',
                 'subcategory' => 'required|string',
                 'type' => 'required|in:video,text',
                 'content' => 'required_if:type,text',
                 'video_url' => 'required_if:type,video|url|nullable',
                 'file' => 'nullable|file|max:10240|mimes:pdf,doc,docx,txt,mp4,zip,rar',
             ]);
+
+            // Handle new category
+            if ($request->category === 'new' && $request->new_category) {
+                $validated['category'] = $request->new_category;
+                
+                // Add new category to the list
+                $categories = $this->getCategories();
+                if (!in_array($validated['category'], $categories)) {
+                    $categories[] = $validated['category'];
+                    sort($categories);
+                    cache()->forever('library_categories', $categories);
+                }
+            }
 
             \Log::info('Validation passed', $validated); // Add logging
 
@@ -167,11 +209,14 @@ class LibraryController extends Controller
 
     private function getCategories()
     {
-        return [
-            'Photography', 'Coding', 'Reading', 'Video Games',
-            'Writing', 'Music', 'Sports', 'Cooking',
-            'Gardening', 'Arts', 'Crafts', 'Running'
-        ];
+        // Get categories from cache or default list
+        return cache()->remember('library_categories', now()->addWeek(), function() {
+            return [
+                'Photography', 'Coding', 'Reading', 'Video Games',
+                'Writing', 'Music', 'Sports', 'Cooking',
+                'Gardening', 'Arts', 'Crafts', 'Running'
+            ];
+        });
     }
 
     private function getSubcategories()
@@ -181,5 +226,65 @@ class LibraryController extends Controller
             'Intermediate',
             'Advanced'
         ];
+    }
+
+    public function addComment(Request $request, LibraryItem $item)
+    {
+        $validated = $request->validate([
+            'content' => 'required|string|max:1000'
+        ]);
+
+        $comment = $item->comments()->create([
+            'user_id' => auth()->id(),
+            'content' => $validated['content']
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'comment' => $comment->load('user')
+        ]);
+    }
+
+    public function rate(Request $request, LibraryItem $item)
+    {
+        $validated = $request->validate([
+            'rating' => 'required|integer|between:1,5'
+        ]);
+
+        $rating = $item->ratings()->updateOrCreate(
+            ['user_id' => auth()->id()],
+            ['rating' => $validated['rating']]
+        );
+
+        // Update average rating
+        $item->update([
+            'average_rating' => $item->ratings()->avg('rating'),
+            'rating_count' => $item->ratings()->count()
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'rating' => $validated['rating'],
+            'average' => $item->average_rating,
+            'count' => $item->rating_count
+        ]);
+    }
+
+    public function toggleFavorite(LibraryItem $item)
+    {
+        $favorite = $item->favorites()->where('user_id', auth()->id())->first();
+
+        if ($favorite) {
+            $favorite->delete();
+            $favorited = false;
+        } else {
+            $item->favorites()->create(['user_id' => auth()->id()]);
+            $favorited = true;
+        }
+
+        return response()->json([
+            'success' => true,
+            'favorited' => $favorited
+        ]);
     }
 } 

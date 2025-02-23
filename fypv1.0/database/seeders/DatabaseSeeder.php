@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\LibraryItem;
 
 class DatabaseSeeder extends Seeder
 {
@@ -268,5 +269,164 @@ Remember: Good exposure is about balancing these three elements based on your cr
                 'updated_at' => now(),
             ],
         ]);
+
+        // Create some library items with different types
+        $libraryItems = [
+            [
+                'user_id' => $userId,
+                'title' => 'Guitar Basics: Getting Started',
+                'description' => 'A comprehensive guide for beginners learning guitar.',
+                'type' => 'text',
+                'content' => "Here's how to get started with guitar:
+                    1. Learn basic chords (A, D, G)
+                    2. Practice finger placement
+                    3. Start with simple strumming patterns
+                    4. Learn your first song",
+                'category' => 'Music',
+                'subcategory' => 'Beginner',
+                'likes' => 5,
+                'dislikes' => 1,
+                'created_at' => now()->subDays(5),
+                'average_rating' => 4.5,
+                'rating_count' => 2
+            ],
+            [
+                'user_id' => $adminId,
+                'title' => 'Cooking Thai Curry',
+                'description' => 'Learn to make authentic Thai curry from scratch',
+                'type' => 'video',
+                'video_url' => 'https://www.youtube.com/embed/example',
+                'category' => 'Cooking',
+                'subcategory' => 'Intermediate',
+                'likes' => 8,
+                'dislikes' => 0,
+                'created_at' => now()->subDays(3),
+                'average_rating' => 5,
+                'rating_count' => 3
+            ],
+            [
+                'user_id' => $userId,
+                'title' => 'Photography Composition Tips',
+                'description' => 'Master the art of photo composition',
+                'type' => 'text',
+                'content' => "Essential composition rules:
+                    1. Rule of thirds
+                    2. Leading lines
+                    3. Symmetry and patterns
+                    4. Frame within frame",
+                'category' => 'Photography',
+                'subcategory' => 'Advanced',
+                'likes' => 12,
+                'dislikes' => 2,
+                'created_at' => now()->subDay(),
+                'average_rating' => 4.2,
+                'rating_count' => 5
+            ]
+        ];
+
+        foreach ($libraryItems as $item) {
+            $libraryItem = LibraryItem::create($item);
+
+            // Add comments
+            $comments = [
+                [
+                    'user_id' => $adminId,
+                    'content' => 'This is really helpful! Thanks for sharing.',
+                    'created_at' => now()->subHours(12)
+                ],
+                [
+                    'user_id' => $userId,
+                    'content' => 'Great resource, exactly what I was looking for.',
+                    'created_at' => now()->subHours(6)
+                ]
+            ];
+
+            foreach ($comments as $comment) {
+                $libraryItem->comments()->create($comment);
+            }
+
+            // Add ratings
+            $ratings = [
+                ['user_id' => $adminId, 'rating' => 5],
+                ['user_id' => $userId, 'rating' => 4]
+            ];
+
+            foreach ($ratings as $rating) {
+                $libraryItem->ratings()->create($rating);
+            }
+
+            // Add favorites
+            $libraryItem->favorites()->create([
+                'user_id' => $adminId
+            ]);
+
+            // Add reactions
+            $reactions = [
+                ['user_id' => $adminId, 'reaction_type' => 'like'],
+                ['user_id' => $userId, 'reaction_type' => 'like']
+            ];
+
+            foreach ($reactions as $reaction) {
+                $libraryItem->reactions()->create($reaction);
+            }
+        }
+
+        // Create additional users and their interactions
+        $users = [
+            [
+                'name' => 'John Doe',
+                'email' => 'john@example.com',
+                'password' => Hash::make('password123'),
+                'role' => 'user'
+            ],
+            [
+                'name' => 'Jane Smith',
+                'email' => 'jane@example.com',
+                'password' => Hash::make('password123'),
+                'role' => 'user'
+            ]
+        ];
+
+        foreach ($users as $userData) {
+            $user = DB::table('users')->insertGetId($userData + [
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
+            // Add random interactions for each library item
+            LibraryItem::all()->each(function($item) use ($user) {
+                // Random rating
+                if (rand(0, 1)) {
+                    $item->ratings()->create([
+                        'user_id' => $user,
+                        'rating' => rand(3, 5)
+                    ]);
+                }
+
+                // Random favorite
+                if (rand(0, 1)) {
+                    $item->favorites()->create([
+                        'user_id' => $user
+                    ]);
+                }
+
+                // Random comment
+                if (rand(0, 1)) {
+                    $item->comments()->create([
+                        'user_id' => $user,
+                        'content' => 'This is a great resource! Thanks for sharing.',
+                        'created_at' => now()->subHours(rand(1, 24))
+                    ]);
+                }
+
+                // Random reaction
+                if (rand(0, 1)) {
+                    $item->reactions()->create([
+                        'user_id' => $user,
+                        'reaction_type' => rand(0, 1) ? 'like' : 'dislike'
+                    ]);
+                }
+            });
+        }
     }
 }

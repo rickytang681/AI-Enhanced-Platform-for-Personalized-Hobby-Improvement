@@ -1,6 +1,8 @@
 php, artisan serve
 php artisan migrate
 php artisan make:seeder DatabaseSeeder
+
+php artisan migrate:fresh
 php artisan db:seed --class=DatabaseSeeder
 
 add stronge/
@@ -29,8 +31,6 @@ npm install --save bootstrap
 
 npm run dev
 npm run watch
-
-
 
 
 

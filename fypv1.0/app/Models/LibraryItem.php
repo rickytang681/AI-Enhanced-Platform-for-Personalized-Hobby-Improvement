@@ -22,6 +22,8 @@ class LibraryItem extends Model
         'likes',
         'dislikes',
         'file_path', // For uploaded files
+        'average_rating',
+        'rating_count'
     ];
 
     // Add this to handle JSON serialization of null values
@@ -50,5 +52,30 @@ class LibraryItem extends Model
     public function reactions()
     {
         return $this->hasMany(LibraryReaction::class);
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(LibraryComment::class);
+    }
+
+    public function ratings()
+    {
+        return $this->hasMany(LibraryRating::class);
+    }
+
+    public function favorites()
+    {
+        return $this->hasMany(LibraryFavorite::class);
+    }
+
+    public function isFavoritedBy(User $user)
+    {
+        return $this->favorites()->where('user_id', $user->id)->exists();
+    }
+
+    public function userRating(User $user)
+    {
+        return $this->ratings()->where('user_id', $user->id)->first();
     }
 } 
