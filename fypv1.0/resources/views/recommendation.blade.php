@@ -1,9 +1,6 @@
 @extends('layouts.logoutHeader')
 
 @section('content')
-<head>
-    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
-</head>
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8">

@@ -27,8 +27,9 @@ Route::middleware(['auth'])->group(function () {
     Route::controller(GoalController::class)->group(function () {
         Route::get('/goals', 'index')->name('goals.index');
         Route::post('/goals', 'store')->name('goals.store');
-        Route::patch('/goals/{goal}/progress', 'updateProgress')->name('goals.update-progress');
         Route::post('/goals/{goal}/milestones', 'addMilestone')->name('goals.milestones.store');
+        Route::post('/goals/{goal}/milestones/{milestone}/toggle', 'toggleMilestone')->name('goals.milestones.toggle');
+        Route::delete('/goals/{goal}', 'destroy')->name('goals.destroy');
     });
 
     // Profile
@@ -38,7 +39,11 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Library
-    Route::get('/library', [LibraryController::class, 'index'])->name('library');
+    Route::controller(LibraryController::class)->group(function () {
+        Route::get('/library', 'index')->name('library');
+        Route::post('/library', 'store')->name('library.store');
+        Route::post('/library/{item}/react', 'react')->name('library.react');
+    });
 
     // Community
     Route::get('/community', [CommunityController::class, 'index'])->name('community');

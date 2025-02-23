@@ -1,16 +1,6 @@
 @extends('layouts.logoutHeader')
 
 @section('content')
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Goal Setting Section</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
-</head>
-<body>
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-8">
@@ -172,6 +162,7 @@
                                                                 <div>
                                                                     <input type="checkbox" 
                                                                            class="form-check-input me-2 milestone-checkbox"
+                                                                           data-goal-id="{{ $goal->id }}"
                                                                            data-milestone-id="{{ $milestone->id }}"
                                                                            {{ $milestone->completed ? 'checked' : '' }}>
                                                                     {{ $milestone->description }}
@@ -195,16 +186,11 @@
                                                 </form>
                                             </div>
                                             
-                                            <!-- Progress Update Form -->
-                                            <form method="POST" action="{{ route('goals.update-progress', $goal) }}" class="mt-2">
+                                            <!-- Add Delete Button -->
+                                            <form method="POST" action="{{ route('goals.destroy', $goal) }}" class="mt-2">
                                                 @csrf
-                                                @method('PATCH')
-                                                <div class="input-group">
-                                                    <input type="number" name="progress" class="form-control" 
-                                                           min="0" max="100" value="{{ $goal->progress }}"
-                                                           placeholder="Update progress">
-                                                    <button type="submit" class="btn btn-outline-primary">Update</button>
-                                                </div>
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger">Delete Goal</button>
                                             </form>
                                         </div>
                                     </div>
@@ -253,9 +239,10 @@
     document.querySelectorAll('.milestone-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             const milestoneId = this.dataset.milestoneId;
+            const goalId = this.dataset.goalId;
             const completed = this.checked;
 
-            fetch(`/milestones/${milestoneId}/toggle`, {
+            fetch(`/goals/${goalId}/milestones/${milestoneId}/toggle`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -265,11 +252,23 @@
             })
             .then(response => response.json())
             .then(data => {
-                // Update goal progress if needed
-                const progressBar = this.closest('.goal-card').querySelector('.progress-bar');
-                if (progressBar) {
-                    progressBar.style.width = `${data.goalProgress}%`;
-                    progressBar.textContent = `${data.goalProgress}%`;
+                // Update goal progress
+                const goalCard = this.closest('.goal-card');
+                const progressBar = goalCard.querySelector('.progress-bar');
+                progressBar.style.width = `${data.progress}%`;
+                progressBar.textContent = `${data.progress}%`;
+                progressBar.setAttribute('aria-valuenow', data.progress);
+
+                // Update goal status badge if needed
+                const statusBadge = goalCard.querySelector('.badge');
+                if (data.status === 'completed') {
+                    statusBadge.classList.remove('bg-primary');
+                    statusBadge.classList.add('bg-success');
+                    statusBadge.textContent = 'Completed';
+                } else {
+                    statusBadge.classList.remove('bg-success');
+                    statusBadge.classList.add('bg-primary');
+                    statusBadge.textContent = 'In Progress';
                 }
             });
         });
@@ -277,6 +276,4 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
 @endsection

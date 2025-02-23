@@ -1,70 +1,23 @@
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ config('app.name', 'Hobby Improvement') }}</title>
-
+    
     <!-- Styles -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <link href="{{ asset('css/style.css') }}" rel="stylesheet">
-    
-    <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize all dropdowns
-            var dropdownElementList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'))
-            var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
-                return new bootstrap.Dropdown(dropdownToggleEl)
-            });
-        });
-    </script>
-
-    <style>
-        body {
-            font-family: 'Nunito', sans-serif;
-            background-color: #f8f9fa;
-        }
-        .navbar {
-            background-color: #ffffff;
-        }
-        .navbar-brand {
-            font-weight: bold;
-        }
-        .nav-item a {
-            font-weight: 500;
-        }
-        .btn-outline-primary {
-            transition: all 0.2s ease-in-out;
-        }
-        .btn-outline-primary:hover {
-            color: #fff;
-            background-color: #007bff;
-            border-color: #007bff;
-        }
-        .button-container {
-            padding: 10px 0;
-        }
-        .profile-image {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            margin-right: 8px;
-            object-fit: cover;
-        }
-    </style>
+    @stack('styles')
 </head>
-<body>
+<body class="auth-layout">
     <div id="app">
         <nav class="navbar navbar-expand-md shadow-sm">
             <div class="container">
@@ -161,16 +114,12 @@
         </main>
     </div>
     @include('layouts.footer')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const dropdownButton = document.getElementById('dropdownMenuButton');
-            if (dropdownButton) {
-                dropdownButton.addEventListener('click', function() {
-                    const dropdownMenu = this.nextElementSibling;
-                    dropdownMenu.classList.toggle('show');
-                });
-            }
-        });
-    </script>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('js/common.js') }}"></script>
+    @stack('scripts')
 </body>
 </html>

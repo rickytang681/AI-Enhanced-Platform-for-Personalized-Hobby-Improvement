@@ -120,5 +120,153 @@ class DatabaseSeeder extends Seeder
                 'updated_at' => now(),
             ],
         ]);
+
+        // Create Library Items
+        DB::table('library_items')->insert([
+            [
+                'user_id' => $userId, // Using the regular user we created above
+                'title' => 'Beginner Guitar Chords Guide',
+                'description' => 'A comprehensive guide for learning basic guitar chords with finger positions and practice tips.',
+                'type' => 'text',
+                'content' => "Learning guitar chords is essential for beginners. Here are the most important basic chords:
+
+1. E Major (E)
+- Place your first finger on the first fret of the G string
+- Place your second finger on the second fret of the A string
+- Place your third finger on the second fret of the D string
+
+2. A Major (A)
+- Place your first finger on the second fret of the B string
+- Place your second finger on the second fret of the G string
+- Place your third finger on the second fret of the D string
+
+3. D Major (D)
+- Place your first finger on the second fret of the G string
+- Place your second finger on the second fret of the high E string
+- Place your third finger on the third fret of the B string
+
+Practice Tips:
+- Start slowly and focus on clean sound
+- Practice transitioning between chords
+- Use a metronome to maintain rhythm
+- Practice at least 15 minutes daily",
+                'category' => 'Music',
+                'subcategory' => 'Beginner',
+                'likes' => 5,
+                'dislikes' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'user_id' => $userId,
+                'title' => 'Essential Thai Cooking Ingredients',
+                'description' => 'A guide to must-have ingredients for Thai cooking with usage tips.',
+                'type' => 'text',
+                'content' => "To start cooking Thai food, you'll need these essential ingredients:
+
+1. Fish Sauce (Nam Pla)
+- Adds saltiness and umami
+- Used in most Thai dishes
+- Start with small amounts
+
+2. Palm Sugar
+- Adds sweetness with complex flavor
+- Can substitute with brown sugar
+- Essential for balancing spicy dishes
+
+3. Thai Basil
+- Different from Italian basil
+- Used in stir-fries and curries
+- Adds distinctive Thai flavor
+
+4. Coconut Milk
+- Base for curries
+- Use full-fat for best results
+- Shake well before using
+
+5. Lemongrass
+- Used in soups and curries
+- Remove outer layers
+- Bruise before using
+
+Storage Tips:
+- Keep fish sauce at room temperature
+- Store palm sugar in airtight container
+- Freeze unused lemongrass
+
+Remember: Thai cooking is about balancing sweet, sour, salty, and spicy flavors.",
+                'category' => 'Cooking',
+                'subcategory' => 'Intermediate',
+                'likes' => 8,
+                'dislikes' => 0,
+                'created_at' => now()->subDays(2),
+                'updated_at' => now()->subDays(2),
+            ],
+            [
+                'user_id' => $adminId, // Using the admin user
+                'title' => 'Photography Basics: Understanding Exposure',
+                'description' => 'Learn the fundamentals of exposure in photography with this beginner-friendly guide.',
+                'type' => 'text',
+                'content' => "Understanding exposure is crucial for photography. The exposure triangle consists of:
+
+1. Aperture (f-stop)
+- Controls depth of field
+- Lower f-number = more light, blurrier background
+- Higher f-number = less light, sharper background
+- Example: f/1.8 for portraits, f/8 for landscapes
+
+2. Shutter Speed
+- Controls motion blur
+- Faster speeds freeze action
+- Slower speeds create motion effects
+- Rule of thumb: 1/focal length for handheld
+
+3. ISO
+- Controls light sensitivity
+- Lower ISO = less noise, better quality
+- Higher ISO = more noise, better in low light
+- Start with ISO 100 in daylight
+
+Practice Exercise:
+1. Set your camera to manual mode
+2. Start with ISO 100
+3. Choose f/8 aperture
+4. Adjust shutter speed until exposure is correct
+5. Take test shots and observe differences
+
+Remember: Good exposure is about balancing these three elements based on your creative goals.",
+                'category' => 'Photography',
+                'subcategory' => 'Beginner',
+                'likes' => 12,
+                'dislikes' => 2,
+                'created_at' => now()->subDays(5),
+                'updated_at' => now()->subDays(5),
+            ],
+        ]);
+
+        // Create some reactions for the library items
+        DB::table('library_reactions')->insert([
+            [
+                'user_id' => $adminId,
+                'library_item_id' => 1,
+                'reaction_type' => 'like',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'user_id' => $userId,
+                'library_item_id' => 2,
+                'reaction_type' => 'like',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'user_id' => $adminId,
+                'library_item_id' => 3,
+                'reaction_type' => 'like',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
     }
 }

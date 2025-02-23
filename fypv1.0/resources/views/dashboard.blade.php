@@ -1,9 +1,6 @@
 @extends('layouts.logoutHeader')
 
 @section('content')
-<head>
-    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
-</head>
 <div class="container mt-4">
     <!-- Dashboard Sections -->
     <div class="row g-3">

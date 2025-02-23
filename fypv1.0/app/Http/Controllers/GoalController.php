@@ -62,20 +62,6 @@ class GoalController extends Controller
         return redirect()->back()->with('success', 'Goal created successfully!');
     }
 
-    public function updateProgress(Request $request, Goal $goal)
-    {
-        $validated = $request->validate([
-            'progress' => 'required|integer|min:0|max:100'
-        ]);
-
-        $goal->update([
-            'progress' => $validated['progress'],
-            'status' => $validated['progress'] == 100 ? 'completed' : 'in-progress'
-        ]);
-
-        return redirect()->back()->with('success', 'Progress updated successfully!');
-    }
-
     public function addMilestone(Request $request, Goal $goal)
     {
         $validated = $request->validate([
@@ -86,5 +72,35 @@ class GoalController extends Controller
         $goal->milestones()->create($validated);
 
         return back()->with('success', 'Milestone added successfully');
+    }
+
+    public function toggleMilestone(Request $request, Goal $goal, $milestoneId)
+    {
+        $milestone = $goal->milestones()->findOrFail($milestoneId);
+        $milestone->update(['completed' => $request->completed]);
+
+        // Calculate new progress based on completed milestones
+        $totalMilestones = $goal->milestones()->count();
+        $completedMilestones = $goal->milestones()->where('completed', true)->count();
+        
+        $progress = $totalMilestones > 0 ? round(($completedMilestones / $totalMilestones) * 100) : 0;
+        
+        // Update goal progress and status
+        $goal->update([
+            'progress' => $progress,
+            'status' => $progress == 100 ? 'completed' : 'in-progress'
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'progress' => $progress,
+            'status' => $goal->status
+        ]);
+    }
+
+    public function destroy(Goal $goal)
+    {
+        $goal->delete();
+        return redirect()->route('goals.index')->with('success', 'Goal deleted successfully.');
     }
 } 

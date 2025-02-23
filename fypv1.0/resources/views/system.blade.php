@@ -1,9 +1,6 @@
 @extends('layouts.logoutHeader')
 
 @section('content')
-<head>
-    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
-</head>
 <div class="container">
     <h1>System Administration</h1>
 
