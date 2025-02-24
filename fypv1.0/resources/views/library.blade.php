@@ -112,8 +112,8 @@
                                         <label class="form-check-label" for="cat-{{ $loop->index }}">{{ $category }}</label>
                                     </div>
                                 @endforeach
-                            </div>
-                        </div>
+                    </div>
+                </div>
 
                         <div>
                             <h5>Level</h5>
@@ -217,7 +217,7 @@
                                     </form>
 
                                     <!-- Comments List -->
-                                    <div class="comments-list">
+                                    <div class="comments-list" data-item="{{ $item->id }}">
                                         @foreach($item->comments->take(3) as $comment)
                                             <div class="comment mb-2">
                                                 <div class="d-flex align-items-center">
@@ -229,10 +229,17 @@
                                                 <p class="mb-1 ms-4">{{ $comment->content }}</p>
                                             </div>
                                         @endforeach
-                                        @if($item->comments->count() > 3)
-                                            <a href="#" class="show-more-comments">Show more comments</a>
-                                        @endif
                                     </div>
+                                    
+                                    @if($item->comments->count() > 3)
+                                        <div class="comments-toggle">
+                                            <button class="btn btn-link show-more-comments" 
+                                                    data-item="{{ $item->id }}" 
+                                                    data-showing="less">
+                                                Show more comments
+                                            </button>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -273,57 +280,122 @@
                     @csrf
                     <div class="mb-3">
                         <label class="form-label">Title</label>
-                        <input type="text" name="title" class="form-control" required value="{{ old('title') }}">
+                        <input type="text" 
+                               name="title" 
+                               class="form-control @error('title') is-invalid @enderror" 
+                               required 
+                               value="{{ old('title') }}"
+                               maxlength="255">
+                        @error('title')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label">Description</label>
-                        <textarea name="description" class="form-control" rows="3" required>{{ old('description') }}</textarea>
+                        <textarea name="description" 
+                                  class="form-control @error('description') is-invalid @enderror" 
+                                  rows="3" 
+                                  required 
+                                  maxlength="1000">{{ old('description') }}</textarea>
+                        @error('description')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label">Category</label>
                         <div class="input-group">
-                            <select name="category" class="form-select" id="category-select" required>
+                            <select name="category" 
+                                    class="form-select @error('category') is-invalid @enderror" 
+                                    id="category-select">
                                 <option value="">Select Category</option>
                                 <option value="new">+ Add New Category</option>
                                 @foreach($categories as $category)
-                                    <option value="{{ $category }}">{{ $category }}</option>
+                                    <option value="{{ $category }}" {{ old('category') == $category ? 'selected' : '' }}>
+                                        {{ $category }}
+                                    </option>
                                 @endforeach
                             </select>
                             <input type="text" 
-                                   class="form-control" 
+                                   class="form-control @error('new_category') is-invalid @enderror" 
                                    id="new-category" 
                                    name="new_category" 
                                    placeholder="Enter new category"
-                                   style="display: none;">
+                                   value="{{ old('new_category') }}"
+                                   style="display: none;"
+                                   maxlength="50">
+                            @error('category')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            @error('new_category')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label">Level</label>
-                        <select name="subcategory" class="form-select" required>
+                        <select name="subcategory" 
+                                class="form-select @error('subcategory') is-invalid @enderror" 
+                                required>
                             @foreach($subcategories as $subcategory)
-                                <option value="{{ $subcategory }}">{{ $subcategory }}</option>
+                                <option value="{{ $subcategory }}" {{ old('subcategory') == $subcategory ? 'selected' : '' }}>
+                                    {{ $subcategory }}
+                                </option>
                             @endforeach
                         </select>
+                        @error('subcategory')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label">Type</label>
-                        <select name="type" class="form-select" id="content-type" required>
-                            <option value="text">Text</option>
-                            <option value="video">Video</option>
+                        <select name="type" 
+                                class="form-select @error('type') is-invalid @enderror" 
+                                id="content-type" 
+                                required>
+                            <option value="text" {{ old('type') == 'text' ? 'selected' : '' }}>Text</option>
+                            <option value="video" {{ old('type') == 'video' ? 'selected' : '' }}>Video</option>
                         </select>
+                        @error('type')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
+
                     <div class="mb-3" id="text-content">
                         <label class="form-label">Content</label>
-                        <textarea name="content" class="form-control" rows="5"></textarea>
+                        <textarea name="content" 
+                                  class="form-control @error('content') is-invalid @enderror" 
+                                  rows="5">{{ old('content') }}</textarea>
+                        @error('content')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
+
                     <div class="mb-3" id="video-content" style="display: none;">
                         <label class="form-label">Video URL</label>
-                        <input type="url" name="video_url" class="form-control">
+                        <input type="url" 
+                               name="video_url" 
+                               class="form-control @error('video_url') is-invalid @enderror"
+                               value="{{ old('video_url') }}">
+                        @error('video_url')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label">Additional File (Optional)</label>
-                        <input type="file" name="file" class="form-control">
+                        <input type="file" 
+                               name="file" 
+                               class="form-control @error('file') is-invalid @enderror">
+                        <small class="text-muted">Max size: 10MB. Supported formats: PDF, DOC, DOCX, TXT, MP4, ZIP, RAR</small>
+                        @error('file')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
+
                     <button type="submit" class="btn btn-primary">Upload</button>
                 </form>
             </div>

@@ -92,13 +92,13 @@ class LibraryController extends Controller
         try {
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
-                'description' => 'required|string',
-                'category' => 'required_without:new_category|string',
-                'new_category' => 'required_if:category,new|string|max:255',
-                'subcategory' => 'required|string',
+                'description' => 'required|string|max:1000',
+                'category' => 'required_without:new_category|string|max:50',
+                'new_category' => 'required_if:category,new|string|max:50|nullable',
+                'subcategory' => 'required|string|max:50',
                 'type' => 'required|in:video,text',
-                'content' => 'required_if:type,text',
-                'video_url' => 'required_if:type,video|url|nullable',
+                'content' => 'required_if:type,text|nullable|string',
+                'video_url' => 'required_if:type,video|nullable|url',
                 'file' => 'nullable|file|max:10240|mimes:pdf,doc,docx,txt,mp4,zip,rar',
             ]);
 
@@ -115,50 +115,45 @@ class LibraryController extends Controller
                 }
             }
 
-            \Log::info('Validation passed', $validated); // Add logging
-
+            // Handle file upload if present
             if ($request->hasFile('file')) {
-                try {
-                    $filename = time() . '_' . $request->file('file')->getClientOriginalName();
-                    $path = $request->file('file')->storeAs('library-files', $filename, 'public');
-                    $validated['file_path'] = $path;
-                    \Log::info('File uploaded successfully', ['path' => $path]); // Add logging
-                } catch (\Exception $e) {
-                    \Log::error('File upload failed', ['error' => $e->getMessage()]); // Add logging
-                    return redirect()->back()
-                        ->withInput()
-                        ->withErrors(['file' => 'Failed to upload file: ' . $e->getMessage()]);
-                }
+                $file = $request->file('file');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('library-files', $filename, 'public');
+                $validated['file_path'] = $path;
             }
 
+            // Set default values
             $validated['user_id'] = auth()->id();
             $validated['likes'] = 0;
             $validated['dislikes'] = 0;
+            $validated['average_rating'] = 0;
+            $validated['rating_count'] = 0;
 
-            // Remove null values from validated data
+            // Remove null values and empty strings
             $validated = array_filter($validated, function($value) {
-                return !is_null($value);
+                return !is_null($value) && $value !== '';
             });
 
-            \Log::info('Creating library item', $validated); // Add logging
-
             $item = LibraryItem::create($validated);
-
-            \Log::info('Library item created', ['item_id' => $item->id]); // Add logging
 
             return redirect()->route('library')
                 ->with('success', 'Resource uploaded successfully!');
 
         } catch (\Exception $e) {
-            \Log::error('Failed to create library item', ['error' => $e->getMessage()]); // Add logging
-            
+            \Log::error('Library store error: ' . $e->getMessage(), [
+                'request' => $request->all(),
+                'user' => auth()->id()
+            ]);
+
+            // Clean up uploaded file if exists
             if (isset($path)) {
                 Storage::disk('public')->delete($path);
             }
             
             return redirect()->back()
                 ->withInput()
-                ->withErrors(['error' => 'Failed to create resource: ' . $e->getMessage()]);
+                ->withErrors(['error' => 'Failed to create resource. Please check your input and try again.']);
         }
     }
 
@@ -285,6 +280,19 @@ class LibraryController extends Controller
         return response()->json([
             'success' => true,
             'favorited' => $favorited
+        ]);
+    }
+
+    public function getComments(LibraryItem $item)
+    {
+        $comments = $item->comments()
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'comments' => $comments
         ]);
     }
 } 

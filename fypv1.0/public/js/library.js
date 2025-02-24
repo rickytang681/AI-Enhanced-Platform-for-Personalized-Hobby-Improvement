@@ -215,13 +215,62 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Add this to your existing DOMContentLoaded event listener
+    document.querySelectorAll('.show-more-comments').forEach(button => {
+        button.addEventListener('click', function() {
+            const itemId = this.dataset.item;
+            const showing = this.dataset.showing;
+            const commentsList = this.closest('.comments-section').querySelector('.comments-list');
+            
+            if (showing === 'less') {
+                // Show all comments
+                fetch(`/library/${itemId}/comments`)
+                    .then(response => response.json())
+                    .then(data => {
+                        commentsList.innerHTML = ''; // Clear existing comments
+                        data.comments.forEach(comment => {
+                            commentsList.appendChild(createCommentElement(comment));
+                        });
+                        this.textContent = 'Show less comments';
+                        this.dataset.showing = 'more';
+                    });
+            } else {
+                // Show only first 3 comments
+                fetch(`/library/${itemId}/comments`)
+                    .then(response => response.json())
+                    .then(data => {
+                        commentsList.innerHTML = ''; // Clear existing comments
+                        data.comments.slice(0, 3).forEach(comment => {
+                            commentsList.appendChild(createCommentElement(comment));
+                        });
+                        this.textContent = 'Show more comments';
+                        this.dataset.showing = 'less';
+                    });
+            }
+        });
+    });
 });
 
 function createCommentElement(comment) {
-    // Create and return comment HTML element
     const div = document.createElement('div');
     div.className = 'comment mb-2';
-    // Add comment content...
+    
+    const profilePicture = comment.user.profile_picture 
+        ? `/storage/${comment.user.profile_picture}`
+        : '/images/default-profile.png';
+    
+    div.innerHTML = `
+        <div class="d-flex align-items-center">
+            <img src="${profilePicture}" 
+                 class="profile-image-small me-2" 
+                 alt="Profile">
+            <strong>${comment.user.name}</strong>
+            <small class="text-muted ms-2">${formatDate(comment.created_at)}</small>
+        </div>
+        <p class="mb-1 ms-4">${comment.content}</p>
+    `;
+    
     return div;
 }
 
@@ -241,4 +290,18 @@ function formatContent(content) {
         }
         return '';
     }).join('');
+}
+
+// Add a helper function to format dates
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = Math.floor((now - date) / 1000); // difference in seconds
+
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+    if (diff < 604800) return `${Math.floor(diff / 86400)} days ago`;
+    
+    return date.toLocaleDateString();
 } 

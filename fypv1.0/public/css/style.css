@@ -513,3 +513,30 @@ footer a:hover {
         font-size: 1rem;
     }
 }
+
+/* Comments section styles */
+.comments-toggle {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.show-more-comments {
+    text-decoration: none;
+    color: #6c757d;
+    font-size: 0.9rem;
+    padding: 0;
+}
+
+.show-more-comments:hover {
+    color: #0d6efd;
+    text-decoration: underline;
+}
+
+.comment {
+    transition: all 0.3s ease;
+}
+
+.comments-list {
+    max-height: 500px;
+    overflow-y: auto;
+}

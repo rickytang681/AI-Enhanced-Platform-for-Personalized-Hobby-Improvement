@@ -46,6 +46,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/library/{item}/comment', 'addComment')->name('library.comment');
         Route::post('/library/{item}/rate', 'rate')->name('library.rate');
         Route::post('/library/{item}/favorite', 'toggleFavorite')->name('library.favorite');
+        Route::get('/library/{item}/comments', 'getComments')->name('library.comments');
     });
 
     // Community
