@@ -78,21 +78,29 @@
                                                        {{ in_array('content', request('search_in', [])) ? 'checked' : '' }}>
                                                 <label class="form-check-label" for="searchContent">Content</label>
                                             </div>
-                                        </div>
-                                    </div>
+                                </div>
+                                <div class="form-check">
+                                    <input type="checkbox" 
+                                           class="form-check-input" 
+                                           name="saved" 
+                                           value="true" 
+                                           id="savedFilter"
+                                           {{ request('saved') === 'true' ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="savedFilter">Show Saved Only</label>
                                 </div>
                             </div>
                         </div>
                     </form>
                 </div>
-
+            </div>
+            <div>
                 @if(session('success'))
                     <div class="alert alert-success alert-dismissible fade show">
                         {{ session('success') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
-
+            
                 <!-- Upload Button -->
                 <button class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#uploadModal">
                     Upload New Resource
@@ -187,10 +195,11 @@
                                             <small class="text-muted ms-2">({{ $item->rating_count }})</small>
                                         </div>
 
-                                        <!-- Favorite Button -->
-                                        <button class="btn btn-sm {{ $item->isFavoritedBy(auth()->user()) ? 'btn-danger' : 'btn-outline-danger' }} favorite-btn"
-                                                data-item="{{ $item->id }}">
-                                            <i class="bi bi-heart{{ $item->isFavoritedBy(auth()->user()) ? '-fill' : '' }}"></i>
+                                        <!-- Save Button -->
+                                        <button class="btn btn-sm {{ $item->isSavedBy(auth()->user()) ? 'btn-primary' : 'btn-outline-primary' }} save-btn"
+                                                data-item="{{ $item->id }}"
+                                                title="{{ $item->isSavedBy(auth()->user()) ? 'Remove from saved' : 'Save for later' }}">
+                                            <i class="bi bi-bookmark{{ $item->isSavedBy(auth()->user()) ? '-fill' : '' }}"></i>
                                         </button>
                                     </div>
 
@@ -380,6 +389,7 @@
                                name="video_url" 
                                class="form-control @error('video_url') is-invalid @enderror"
                                value="{{ old('video_url') }}">
+                                <small class="text-muted">https://www.youtube.com/embed/videoid</small>
                         @error('video_url')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

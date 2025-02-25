@@ -18,6 +18,13 @@ class LibraryController extends Controller
     {
         $query = LibraryItem::query();
 
+        // Add saved filter
+        if ($request->saved === 'true') {
+            $query->whereHas('saves', function($q) {
+                $q->where('user_id', auth()->id());
+            });
+        }
+
         // Full-text search with specified fields
         if ($request->search) {
             $searchTerm = $request->search;
@@ -265,21 +272,21 @@ class LibraryController extends Controller
         ]);
     }
 
-    public function toggleFavorite(LibraryItem $item)
+    public function toggleSave(LibraryItem $item)
     {
-        $favorite = $item->favorites()->where('user_id', auth()->id())->first();
+        $save = $item->saves()->where('user_id', auth()->id())->first();
 
-        if ($favorite) {
-            $favorite->delete();
-            $favorited = false;
+        if ($save) {
+            $save->delete();
+            $saved = false;
         } else {
-            $item->favorites()->create(['user_id' => auth()->id()]);
-            $favorited = true;
+            $item->saves()->create(['user_id' => auth()->id()]);
+            $saved = true;
         }
 
         return response()->json([
             'success' => true,
-            'favorited' => $favorited
+            'saved' => $saved
         ]);
     }
 

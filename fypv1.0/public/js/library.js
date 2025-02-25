@@ -126,12 +126,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Favorite functionality
-    document.querySelectorAll('.favorite-btn').forEach(button => {
+    // Save functionality
+    document.querySelectorAll('.save-btn').forEach(button => {
         button.addEventListener('click', function() {
             const itemId = this.dataset.item;
 
-            fetch(`/library/${itemId}/favorite`, {
+            fetch(`/library/${itemId}/save`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -141,12 +141,14 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 const icon = this.querySelector('i');
-                if (data.favorited) {
-                    this.classList.replace('btn-outline-danger', 'btn-danger');
-                    icon.classList.replace('bi-heart', 'bi-heart-fill');
+                if (data.saved) {
+                    this.classList.replace('btn-outline-primary', 'btn-primary');
+                    icon.classList.replace('bi-bookmark', 'bi-bookmark-fill');
+                    this.title = 'Remove from saved';
                 } else {
-                    this.classList.replace('btn-danger', 'btn-outline-danger');
-                    icon.classList.replace('bi-heart-fill', 'bi-heart');
+                    this.classList.replace('btn-primary', 'btn-outline-primary');
+                    icon.classList.replace('bi-bookmark-fill', 'bi-bookmark');
+                    this.title = 'Save for later';
                 }
             });
         });

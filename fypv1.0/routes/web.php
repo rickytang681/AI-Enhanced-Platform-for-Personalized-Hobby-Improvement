@@ -45,7 +45,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/library/{item}/react', 'react')->name('library.react');
         Route::post('/library/{item}/comment', 'addComment')->name('library.comment');
         Route::post('/library/{item}/rate', 'rate')->name('library.rate');
-        Route::post('/library/{item}/favorite', 'toggleFavorite')->name('library.favorite');
+        Route::post('/library/{item}/save', 'toggleSave')->name('library.save');
         Route::get('/library/{item}/comments', 'getComments')->name('library.comments');
     });
 

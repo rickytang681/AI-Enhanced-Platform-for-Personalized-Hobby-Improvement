@@ -64,14 +64,14 @@ class LibraryItem extends Model
         return $this->hasMany(LibraryRating::class);
     }
 
-    public function favorites()
+    public function saves()
     {
-        return $this->hasMany(LibraryFavorite::class);
+        return $this->hasMany(LibrarySave::class);
     }
 
-    public function isFavoritedBy(User $user)
+    public function isSavedBy(User $user)
     {
-        return $this->favorites()->where('user_id', $user->id)->exists();
+        return $this->saves()->where('user_id', $user->id)->exists();
     }
 
     public function userRating(User $user)

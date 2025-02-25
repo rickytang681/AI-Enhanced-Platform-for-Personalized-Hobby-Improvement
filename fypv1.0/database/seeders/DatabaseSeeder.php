@@ -355,8 +355,8 @@ Remember: Good exposure is about balancing these three elements based on your cr
                 $libraryItem->ratings()->create($rating);
             }
 
-            // Add favorites
-            $libraryItem->favorites()->create([
+            // Add saves (previously favorites)
+            $libraryItem->saves()->create([
                 'user_id' => $adminId
             ]);
 
@@ -403,9 +403,9 @@ Remember: Good exposure is about balancing these three elements based on your cr
                     ]);
                 }
 
-                // Random favorite
+                // Random save (previously favorite)
                 if (rand(0, 1)) {
-                    $item->favorites()->create([
+                    $item->saves()->create([
                         'user_id' => $user
                     ]);
                 }
