@@ -101,16 +101,31 @@ class LibraryController extends Controller
                 'title' => 'required|string|max:255',
                 'description' => 'required|string|max:1000',
                 'category' => 'required_without:new_category|string|max:50',
-                'new_category' => 'required_if:category,new|string|max:50|nullable',
+                'new_category' => 'required_without:category|nullable|string|max:50',
                 'subcategory' => 'required|string|max:50',
-                'type' => 'required|in:video,text',
+                'type' => 'required|in:text,video',
                 'content' => 'required_if:type,text|nullable|string',
                 'video_url' => 'required_if:type,video|nullable|url',
-                'file' => 'nullable|file|max:10240|mimes:pdf,doc,docx,txt,mp4,zip,rar',
+                'file' => [
+                    'nullable',
+                    'file',
+                    'max:10240', // 10MB
+                    'mimes:pdf,doc,docx,txt,mp4,zip,rar', // Using mimes instead of mimetypes for better compatibility
+                ],
+            ], [
+                'file.max' => 'The file size must not exceed 10MB.',
+                'file.mimes' => 'The file must be one of the following types: PDF, DOC, DOCX, TXT, MP4, ZIP, RAR.',
+                'new_category.string' => 'The new category must be text only.',
+                'new_category.max' => 'The new category name cannot exceed 50 characters.'
             ]);
 
             // Handle new category
-            if ($request->category === 'new' && $request->new_category) {
+            if ($request->category === 'new') {
+                if (empty($request->new_category)) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['new_category' => 'Please enter a new category name']);
+                }
                 $validated['category'] = $request->new_category;
                 
                 // Add new category to the list
@@ -125,8 +140,39 @@ class LibraryController extends Controller
             // Handle file upload if present
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
-                $filename = time() . '_' . $file->getClientOriginalName();
+                
+                // Additional file validation
+                if (!$file->isValid()) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['file' => 'The uploaded file is invalid or corrupted.']);
+                }
+
+                // Create storage directory if it doesn't exist
+                $storage_path = 'public/library-files';
+                if (!Storage::exists($storage_path)) {
+                    Storage::makeDirectory($storage_path);
+                }
+
+                // Generate unique filename
+                $extension = $file->getClientOriginalExtension();
+                $filename = time() . '_' . uniqid() . '.' . $extension;
+                
+                // Store file in public/storage/library-files
                 $path = $file->storeAs('library-files', $filename, 'public');
+                
+                if (!$path) {
+                    \Log::error('File storage failed', [
+                        'original_name' => $file->getClientOriginalName(),
+                        'mime_type' => $file->getMimeType(),
+                        'size' => $file->getSize()
+                    ]);
+                    
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['file' => 'Failed to save the file. Please try again.']);
+                }
+                
                 $validated['file_path'] = $path;
             }
 
@@ -150,7 +196,12 @@ class LibraryController extends Controller
         } catch (\Exception $e) {
             \Log::error('Library store error: ' . $e->getMessage(), [
                 'request' => $request->all(),
-                'user' => auth()->id()
+                'user' => auth()->id(),
+                'file_info' => $request->hasFile('file') ? [
+                    'original_name' => $request->file('file')->getClientOriginalName(),
+                    'mime_type' => $request->file('file')->getMimeType(),
+                    'size' => $request->file('file')->getSize()
+                ] : null
             ]);
 
             // Clean up uploaded file if exists
@@ -160,7 +211,7 @@ class LibraryController extends Controller
             
             return redirect()->back()
                 ->withInput()
-                ->withErrors(['error' => 'Failed to create resource. Please check your input and try again.']);
+                ->withErrors(['error' => 'Upload failed: ' . $e->getMessage()]);
         }
     }
 
@@ -188,7 +239,7 @@ class LibraryController extends Controller
         } else {
             LibraryReaction::create([
                 'user_id' => auth()->id(),
-                'library_item_id' => $item->id,
+                'library_item_id', $item->id,
                 'reaction_type' => $validated['reaction_type'],
             ]);
         }
@@ -301,5 +352,20 @@ class LibraryController extends Controller
             'success' => true,
             'comments' => $comments
         ]);
+    }
+
+    public function download(LibraryItem $item)
+    {
+        // Check if file exists
+        if (!$item->file_path || !Storage::disk('public')->exists($item->file_path)) {
+            return redirect()->back()
+                ->with('error', 'File not found.');
+        }
+
+        // Get the original file name if stored, or use the path's basename
+        $fileName = basename($item->file_path);
+
+        // Return file download response
+        return Storage::disk('public')->download($item->file_path, $fileName);
     }
 } 

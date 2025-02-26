@@ -47,6 +47,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/library/{item}/rate', 'rate')->name('library.rate');
         Route::post('/library/{item}/save', 'toggleSave')->name('library.save');
         Route::get('/library/{item}/comments', 'getComments')->name('library.comments');
+        Route::get('/library/{item}/download', 'download')->name('library.download');
     });
 
     // Community

@@ -178,7 +178,7 @@
                                 @endif
 
                                 @if($item->file_path)
-                                    <a href="{{ Storage::url($item->file_path) }}" class="btn btn-sm btn-outline-primary mb-3">
+                                    <a href="{{ route('library.download', $item) }}" class="btn btn-sm btn-outline-primary mb-3">
                                         Download Resource
                                     </a>
                                 @endif
@@ -250,15 +250,13 @@
                                         </div>
                                     @endif
                                 </div>
-                            </div>
+                    </div>
                         </div>
                     @endforeach
 
                     <!-- Pagination -->
-                    <div class="d-flex justify-content-between">
-                        <a href="{{ $items->previousPageUrl() }}" class="btn btn-outline-primary {{ $items->onFirstPage() ? 'disabled' : '' }}">Previous</a>
-                        {{ $items->links() }}
-                        <a href="{{ $items->nextPageUrl() }}" class="btn btn-outline-primary {{ $items->hasMorePages() ? '' : 'disabled' }}">Next</a>
+                    <div class="d-flex justify-content-center align-items-center mt-4">
+                        {{ $items->onEachSide(1)->links('pagination::bootstrap-4') }}
                     </div>
                 </div>
             </div>
@@ -381,7 +379,7 @@
                         @error('content')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                    </div>
+                        </div>
 
                     <div class="mb-3" id="video-content" style="display: none;">
                         <label class="form-label">Video URL</label>
@@ -410,8 +408,8 @@
                 </form>
             </div>
         </div>
-    </div>
-</div>
+                    </div>
+                </div>
 
 <!-- Content View Modal -->
 <div class="modal fade" id="contentModal" tabindex="-1">
