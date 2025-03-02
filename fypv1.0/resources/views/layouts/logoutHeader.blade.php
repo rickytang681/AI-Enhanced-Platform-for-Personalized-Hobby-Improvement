@@ -87,9 +87,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link {{ Request::is('community') ? 'active' : '' }}" href="{{ route('community') }}">
-                                    <i class="bi bi-people"></i> Community
-                                </a>
+                                <a class="nav-link" href="{{ route('community.index') }}">Community</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link {{ Request::is('recommendation') ? 'active' : '' }}" href="{{ route('recommendation') }}">

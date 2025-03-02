@@ -7,80 +7,167 @@
             <div class="card p-4">
                 <h4 class="text-center mb-4">Community Support</h4>
 
-                <!-- Post Section -->
-                <div class="post-section">
-                    <h5>Post:</h5>
-                    <form>
+                @if($errors->any())
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                @if(session('success'))
+                    <div class="alert alert-success">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                <!-- Post Form -->
+                <div class="post-section mb-4">
+                    <form action="{{ route('community.store') }}" method="POST" enctype="multipart/form-data">
+                        @csrf
                         <div class="mb-3">
-                            <label for="cover" class="form-label">Cover:</label>
-                            <div class="post-cover mb-2" id="cover">
-                                <span>Image Placeholder</span>
-                            </div>
-                            <button type="button" class="btn btn-outline-secondary">Add Cover</button>
-                        </div>
-                        <div class="mb-3">
-                            <label for="title" class="form-label">Title:</label>
-                            <input type="text" class="form-control" id="title" placeholder="Enter title">
-                        </div>
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Description:</label>
-                            <textarea class="form-control" id="description" rows="3" placeholder="Enter description"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="tag" class="form-label">Select Tag:</label>
-                            <select class="form-select" id="tag">
-                                <option selected>Reading</option>
-                                <option>Writing</option>
-                                <option>Coding</option>
-                                <option>Gardening</option>
-                                <option>Photography</option>
+                            <label class="form-label">Post Type:</label>
+                            <select name="post_type" class="form-select" required>
+                                <option value="question">Question</option>
+                                <option value="experience">Experience Sharing</option>
+                                <option value="discussion">Discussion Topic</option>
                             </select>
                         </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Cover Image:</label>
+                            <input type="file" name="cover_image" class="form-control" accept="image/*">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Title:</label>
+                            <input type="text" name="title" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Content:</label>
+                            <textarea name="content" class="form-control" rows="4" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tag:</label>
+                            <div class="input-group">
+                                <select name="tag" class="form-select" id="tagSelect" required>
+                                    <option value="">Select Tag</option>
+                                    <option value="new">+ Add New Tag</option>
+                                    <option value="Programming">Programming</option>
+                                    <option value="Reading">Reading</option>
+                                    <option value="Photography">Photography</option>
+                                    <option value="Writing">Writing</option>
+                                    <option value="Gardening">Gardening</option>
+                                </select>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="newTag" 
+                                       name="new_tag" 
+                                       placeholder="Enter new tag"
+                                       style="display: none;"
+                                       maxlength="50">
+                            </div>
+                        </div>
+
                         <button type="submit" class="btn btn-primary">Post</button>
                     </form>
                 </div>
 
-                <!-- Sort Options -->
-                <div class="mb-3">
-                    <select class="form-select" style="max-width: 200px;">
-                        <option selected>Popular</option>
-                        <option>Newest</option>
-                        <option>Highly Rated</option>
-                    </select>
-                </div>
+                <!-- Posts List -->
+                @foreach($posts as $post)
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            @if($post->cover_image)
+                                <div class="d-flex justify-content-center">
+                                    <img src="{{ asset('storage/' . $post->cover_image) }}" 
+                                        class="img-fluid mb-3" 
+                                        alt="Cover Image"
+                                        style="max-height: 300px;width: auto;">
+                                </div>
+                            @endif
 
-                <!-- Post Item -->
-                <div class="post-item">
-                    <div class="post-cover">
-                        <span>Image Placeholder</span>
-                    </div>
-                    <form class="mt-3">
-                        <div class="mb-2">
-                            <label>Author:</label>
-                            <input type="text" class="form-control" readonly>
+
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="card-title">{{ $post->title }}</h5>
+                                <span class="badge bg-secondary">{{ $post->tag }}</span>
+                            </div>
+
+                            <p class="card-text">{{ $post->content }}</p>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    Posted by {{ $post->user->name }} 
+                                    {{ $post->created_at->diffForHumans() }}
+                                </small>
+                            </div>
                         </div>
-                        <div class="mb-2">
-                            <label>Title:</label>
-                            <input type="text" class="form-control" readonly>
-                        </div>
-                        <div class="mb-2">
-                            <label>Description:</label>
-                            <textarea class="form-control" rows="3" readonly></textarea>
-                        </div>
-                    </form>
-                    <div class="actions mt-2">
-                        <a href="#" class="btn btn-link">Share</a>
-                        <i class="thumbs">👍</i>
-                        <i class="thumbs">👎</i>
-                        <a href="#" class="btn btn-link">Bookmark</a>
                     </div>
-                    <div class="mt-3">
-                        <label>Comment:</label>
-                        <textarea class="form-control" rows="2"></textarea>
-                    </div>
+                @endforeach
+
+                <!-- Pagination -->
+                <div class="d-flex justify-content-center mt-4">
+                    {{ $posts->links() }}
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle tag select for create form
+    const tagSelect = document.getElementById('tagSelect');
+    const newTag = document.getElementById('newTag');
+    
+    if (tagSelect) {
+        tagSelect.addEventListener('change', function() {
+            if (this.value === 'new') {
+                newTag.style.display = 'block';
+                newTag.required = true;
+                this.required = false;
+            } else {
+                newTag.style.display = 'none';
+                newTag.required = false;
+                this.required = true;
+            }
+        });
+    }
+
+    // Handle tag select for edit forms
+    document.querySelectorAll('.tagSelect').forEach(select => {
+        const newTagInput = select.parentElement.querySelector('.newTag');
+        select.addEventListener('change', function() {
+            if (this.value === 'new') {
+                newTagInput.style.display = 'block';
+                newTagInput.required = true;
+                this.required = false;
+            } else {
+                newTagInput.style.display = 'none';
+                newTagInput.required = false;
+                this.required = true;
+            }
+        });
+    });
+});
+</script>
+@endpush
+
+<style>
+.card img.img-fluid {
+    object-fit: cover;
+    width: 100%;
+    max-height: 300px;
+}
+
+.post-cover {
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
+}
+</style>
 @endsection

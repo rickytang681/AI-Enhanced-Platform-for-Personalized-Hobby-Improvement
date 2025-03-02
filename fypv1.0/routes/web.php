@@ -51,7 +51,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Community
-    Route::get('/community', [CommunityController::class, 'index'])->name('community');
+    Route::resource('community', CommunityController::class)->only(['index', 'store']);
 
     // Recommendations
     Route::get('/recommendation', [RecommendationController::class, 'index'])->name('recommendation');
