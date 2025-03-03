@@ -42,7 +42,7 @@ Route::middleware(['auth'])->group(function () {
     Route::controller(LibraryController::class)->group(function () {
         Route::get('/library', 'index')->name('library');
         Route::post('/library', 'store')->name('library.store');
-        Route::post('/library/{item}/react', 'react')->name('library.react');
+        Route::post('/library/{item}/react', [LibraryController::class, 'react'])->name('library.react');
         Route::post('/library/{item}/comment', 'addComment')->name('library.comment');
         Route::post('/library/{item}/rate', 'rate')->name('library.rate');
         Route::post('/library/{item}/save', 'toggleSave')->name('library.save');

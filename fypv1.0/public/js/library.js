@@ -33,22 +33,57 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             const itemId = this.dataset.item;
             const reactionType = this.dataset.type;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
             fetch(`/library/${itemId}/react`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({ reaction_type: reactionType })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
+                // Update the counts
                 const card = this.closest('.card');
                 card.querySelector('.likes-count').textContent = data.likes;
                 card.querySelector('.dislikes-count').textContent = data.dislikes;
+
+                // Toggle active state
+                const isLike = reactionType === 'like';
+                const otherButton = card.querySelector(`.reaction-btn[data-type="${isLike ? 'dislike' : 'like'}"]`);
+                
+                // Toggle current button
+                this.classList.toggle('active');
+                if (isLike) {
+                    this.classList.toggle('btn-success');
+                    this.classList.toggle('btn-outline-success');
+                } else {
+                    this.classList.toggle('btn-danger');
+                    this.classList.toggle('btn-outline-danger');
+                }
+
+                // Remove active state from other button
+                otherButton.classList.remove('active');
+                if (!isLike) {
+                    otherButton.classList.remove('btn-success');
+                    otherButton.classList.add('btn-outline-success');
+                } else {
+                    otherButton.classList.remove('btn-danger');
+                    otherButton.classList.add('btn-outline-danger');
+                }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to update reaction. Please try again.');
+            });
         });
     });
 

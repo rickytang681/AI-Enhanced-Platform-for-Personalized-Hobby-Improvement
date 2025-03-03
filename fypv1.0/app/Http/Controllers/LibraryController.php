@@ -227,24 +227,23 @@ class LibraryController extends Controller
 
         if ($existing) {
             if ($existing->reaction_type === $validated['reaction_type']) {
+                // If clicking the same reaction, remove it
                 $existing->delete();
-                $this->updateReactionCount($item);
-                return response()->json([
-                    'message' => 'Reaction removed',
-                    'likes' => $item->likes,
-                    'dislikes' => $item->dislikes
-                ]);
+            } else {
+                // If changing reaction type, update it
+                $existing->update(['reaction_type' => $validated['reaction_type']]);
             }
-            $existing->update($validated);
         } else {
+            // Create new reaction
             LibraryReaction::create([
                 'user_id' => auth()->id(),
-                'library_item_id', $item->id,
-                'reaction_type' => $validated['reaction_type'],
+                'library_item_id' => $item->id,
+                'reaction_type' => $validated['reaction_type']
             ]);
         }
 
         $this->updateReactionCount($item);
+
         return response()->json([
             'message' => 'Reaction updated',
             'likes' => $item->likes,

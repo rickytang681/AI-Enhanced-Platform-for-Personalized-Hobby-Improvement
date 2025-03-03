@@ -5,6 +5,8 @@ php artisan make:seeder DatabaseSeeder
 php artisan migrate:fresh
 php artisan db:seed --class=DatabaseSeeder
 
+php artisan migrate:fresh --seed
+
 add stronge/
 php artisan storage:link 
 

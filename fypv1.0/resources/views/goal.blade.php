@@ -86,11 +86,26 @@
                                            min="{{ date('Y-m-d') }}" value="{{ old('deadline') }}">
                                 </div>
 
-                                <!-- Notes section -->
+                                <!-- Milestones section -->
                                 <div class="mb-3">
-                                    <label for="notes" class="form-label">Additional Notes (optional)</label>
-                                    <textarea id="notes" name="notes" class="form-control" 
-                                            rows="3" placeholder="Add any additional details or milestones">{{ old('notes') }}</textarea>
+                                    <label for="milestones" class="form-label">Milestones</label>
+                                    <div id="milestones-container">
+                                        <div class="milestone-entry mb-2">
+                                            <div class="row">
+                                                <div class="col-md-8">
+                                                    <input type="text" name="milestones[]" class="form-control" 
+                                                           placeholder="Enter milestone" required>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <input type="date" name="milestone_dates[]" class="form-control milestone-date" 
+                                                           required min="{{ date('Y-m-d') }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-secondary mt-2" id="add-milestone">
+                                        <i class="bi bi-plus"></i> Add Another Milestone
+                                    </button>
                                 </div>
 
                                 <!-- Submit Button -->
@@ -272,6 +287,93 @@
                 }
             });
         });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add Hobby functionality
+        const hobbyContainer = document.getElementById('hobby-container');
+        const addHobbyBtn = document.getElementById('add-hobby');
+
+        addHobbyBtn.addEventListener('click', function() {
+            const hobbyEntry = document.createElement('div');
+            hobbyEntry.className = 'hobby-entry mb-2';
+            hobbyEntry.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <input type="text" name="hobbies[]" class="form-control" 
+                               placeholder="Enter Hobby" required>
+                    </div>
+                    <div class="col-md-4">
+                        <select name="experience[]" class="form-select" required>
+                            <option value="">Select Level</option>
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Expert">Expert</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-danger remove-hobby w-100">Remove</button>
+                    </div>
+                </div>
+            `;
+            hobbyContainer.appendChild(hobbyEntry);
+        });
+
+        // Remove Hobby functionality
+        hobbyContainer.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-hobby')) {
+                e.target.closest('.hobby-entry').remove();
+            }
+        });
+
+        // Add Milestone functionality
+        const milestonesContainer = document.getElementById('milestones-container');
+        const addMilestoneBtn = document.getElementById('add-milestone');
+
+        addMilestoneBtn.addEventListener('click', function() {
+            const milestoneEntry = document.createElement('div');
+            milestoneEntry.className = 'milestone-entry mb-2';
+            milestoneEntry.innerHTML = `
+                <div class="row">
+                    <div class="col-md-8">
+                        <input type="text" name="milestones[]" class="form-control" 
+                               placeholder="Enter milestone" required>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <input type="date" name="milestone_dates[]" class="form-control milestone-date" 
+                                   required min="{{ date('Y-m-d') }}" ${deadline.value ? 'max="' + deadline.value + '"' : ''}>
+                            <button type="button" class="btn btn-danger remove-milestone">×</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            milestonesContainer.appendChild(milestoneEntry);
+        });
+
+        // Remove Milestone functionality
+        milestonesContainer.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-milestone')) {
+                e.target.closest('.milestone-entry').remove();
+            }
+        });
+
+        // Validate milestone dates when goal deadline changes
+        const deadline = document.getElementById('deadline');
+        const milestoneDates = document.getElementsByClassName('milestone-date');
+
+        deadline.addEventListener('change', function() {
+            Array.from(milestoneDates).forEach(date => {
+                date.max = this.value;
+            });
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Switch to My Goals tab if specified
+        @if(session('activeTab') === 'my-goals')
+            document.querySelector('[href="#my-goals"]').click();
+        @endif
     });
     </script>
 

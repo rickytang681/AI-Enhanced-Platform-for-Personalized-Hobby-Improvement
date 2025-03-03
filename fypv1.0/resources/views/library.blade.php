@@ -204,10 +204,16 @@
                                     </div>
 
                                     <div class="reactions">
-                                        <button class="btn btn-sm btn-outline-success reaction-btn" data-item="{{ $item->id }}" data-type="like">
+                                        <button class="btn btn-sm btn-outline-success reaction-btn" 
+                                                data-item="{{ $item->id }}" 
+                                                data-type="like"
+                                                data-active="{{ $item->reactions()->where('user_id', auth()->id())->where('reaction_type', 'like')->exists() }}">
                                             👍 <span class="likes-count">{{ $item->likes }}</span>
                                         </button>
-                                        <button class="btn btn-sm btn-outline-danger reaction-btn" data-item="{{ $item->id }}" data-type="dislike">
+                                        <button class="btn btn-sm btn-outline-danger reaction-btn" 
+                                                data-item="{{ $item->id }}" 
+                                                data-type="dislike"
+                                                data-active="{{ $item->reactions()->where('user_id', auth()->id())->where('reaction_type', 'dislike')->exists() }}">
                                             👎 <span class="dislikes-count">{{ $item->dislikes }}</span>
                                         </button>
                                     </div>

@@ -38,9 +38,20 @@ class GoalController extends Controller
             'goal' => 'required|string|max:255',
             'hobbies' => 'required|array|min:1',
             'experience' => 'required|array|min:1',
-            'deadline' => 'nullable|date|after:today',
-            'notes' => 'nullable|string'
+            'deadline' => 'required|date|after:today',
+            'milestones' => 'required|array|min:1',
+            'milestone_dates' => 'required|array|min:1',
+            'milestone_dates.*' => 'required|date|after_or_equal:today'
         ]);
+
+        // Validate milestone dates against goal deadline
+        foreach ($validated['milestone_dates'] as $date) {
+            if (strtotime($date) > strtotime($validated['deadline'])) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['milestone_dates' => 'Milestone dates cannot be later than the goal deadline']);
+            }
+        }
 
         $hobbies = array_map(function($hobby, $experience) {
             return [
@@ -54,24 +65,45 @@ class GoalController extends Controller
             'hobbies' => $hobbies,
             'goal' => $validated['goal'],
             'deadline' => $validated['deadline'],
-            'notes' => $request->notes,
             'progress' => 0,
             'status' => 'in-progress',
         ]);
 
-        return redirect()->back()->with('success', 'Goal created successfully!');
+        // Create milestones
+        foreach ($validated['milestones'] as $index => $milestone) {
+            $goal->milestones()->create([
+                'description' => $milestone,
+                'due_date' => $validated['milestone_dates'][$index],
+                'completed' => false
+            ]);
+        }
+
+        return redirect()->route('goals.index')
+            ->with('success', 'Goal created successfully!')
+            ->with('activeTab', 'my-goals'); // Add this to switch to My Goals tab
     }
 
     public function addMilestone(Request $request, Goal $goal)
     {
         $validated = $request->validate([
             'description' => 'required|string|max:255',
-            'due_date' => 'required|date|after_or_equal:today',
+            'due_date' => [
+                'required',
+                'date',
+                'after_or_equal:today',
+                function ($attribute, $value, $fail) use ($goal) {
+                    if (strtotime($value) > strtotime($goal->deadline)) {
+                        $fail('Milestone date cannot be later than the goal deadline.');
+                    }
+                },
+            ],
         ]);
 
         $goal->milestones()->create($validated);
 
-        return back()->with('success', 'Milestone added successfully');
+        return redirect()->route('goals.index')
+            ->with('success', 'Milestone added successfully')
+            ->with('activeTab', 'my-goals');
     }
 
     public function toggleMilestone(Request $request, Goal $goal, $milestoneId)

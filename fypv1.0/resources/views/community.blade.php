@@ -55,21 +55,20 @@
                             <label class="form-label">Tag:</label>
                             <div class="input-group">
                                 <select name="tag" class="form-select" id="tagSelect" required>
-                                    <option value="">Select Tag</option>
-                                    <option value="new">+ Add New Tag</option>
-                                    <option value="Programming">Programming</option>
-                                    <option value="Reading">Reading</option>
-                                    <option value="Photography">Photography</option>
-                                    <option value="Writing">Writing</option>
-                                    <option value="Gardening">Gardening</option>
+                                    <option value="" disabled>Select Tag</option>
+                                    <option value="new" {{ old('tag') == 'new' ? 'selected' : '' }}>+ Add New Tag</option>
+                                    <option value="Programming" {{ old('tag') == 'Programming' ? 'selected' : '' }}>Programming</option>
+                                    <option value="Reading" {{ old('tag') == 'Reading' ? 'selected' : '' }}>Reading</option>
+                                    <option value="Photography" {{ old('tag') == 'Photography' ? 'selected' : '' }}>Photography</option>
+                                    <option value="Writing" {{ old('tag') == 'Writing' ? 'selected' : '' }}>Writing</option>
+                                    <option value="Gardening" {{ old('tag') == 'Gardening' ? 'selected' : '' }}>Gardening</option>
                                 </select>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="newTag" 
-                                       name="new_tag" 
-                                       placeholder="Enter new tag"
-                                       style="display: none;"
-                                       maxlength="50">
+
+                                <input type="text" class="form-control" id="newTag" name="new_tag"
+                                    placeholder="Enter new tag"
+                                    style="{{ old('tag') == 'new' ? 'display: block;' : 'display: none;' }}"
+                                    value="{{ old('new_tag') }}"
+                                    maxlength="50">
                             </div>
                         </div>
 
