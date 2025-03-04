@@ -62,7 +62,7 @@ Route::middleware(['auth'])->group(function () {
     Route::controller(LibraryController::class)->group(function () {
         Route::get('/library', 'index')->name('library');
         Route::post('/library', 'store')->name('library.store');
-        Route::post('/library/{item}/react', [LibraryController::class, 'react'])->name('library.react');
+        Route::post('/library/{item}/react', 'react')->name('library.react');
         Route::post('/library/{item}/comment', 'addComment')->name('library.comment');
         Route::post('/library/{item}/rate', 'rate')->name('library.rate');
         Route::post('/library/{item}/save', 'toggleSave')->name('library.save');
@@ -70,8 +70,19 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/library/{item}/download', 'download')->name('library.download');
     });
 
-    // Community
-    Route::resource('community', CommunityController::class)->only(['index', 'store']);
+    // Community Routes
+    Route::get('/community', [CommunityController::class, 'index'])->name('community.index');
+    Route::post('/community', [CommunityController::class, 'store'])->name('community.store');
+    Route::get('/community/{community}', [CommunityController::class, 'show'])->name('community.show');
+    Route::post('/community/{community}/save', [CommunityController::class, 'toggleSave'])->name('community.save');
+    Route::post('/community/{community}/comment', [CommunityController::class, 'addComment'])->name('community.comment');
+    Route::get('/community/{community}/comments', [CommunityController::class, 'getComments'])->name('community.comments');
+    Route::post('/community/{community}/react', [CommunityController::class, 'react'])->name('community.react');
+    Route::delete('/community/{community}', [CommunityController::class, 'destroy'])->name('community.destroy');
+    
+    // Additional community routes
+    Route::post('/community/{community}/react', [CommunityController::class, 'react'])->name('community.react');
+    Route::post('/community/{community}/save', [CommunityController::class, 'toggleSave'])->name('community.save');
 
     // Recommendations
     Route::get('/recommendation', [RecommendationController::class, 'index'])->name('recommendation');

@@ -52,4 +52,29 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+    public function communities()
+    {
+        return $this->hasMany(Community::class);
+    }
+
+    public function communityComments()
+    {
+        return $this->hasMany(CommunityComment::class);
+    }
+
+    public function communityReactions()
+    {
+        return $this->hasMany(CommunityReaction::class);
+    }
+
+    public function communityRatings()
+    {
+        return $this->hasMany(CommunityRating::class);
+    }
+
+    public function savedCommunities()
+    {
+        return $this->belongsToMany(Community::class, 'community_saved_posts')
+            ->withTimestamps();
+    }
 }

@@ -4,23 +4,21 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateAchievementsTable extends Migration
+return new class extends Migration
 {
     public function up()
     {
-        Schema::create('achievements', function (Blueprint $table) {
+        Schema::create('community_comments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('achievement_title');
-            $table->text('description')->nullable();
-            $table->timestamp('earned_at')->nullable();
+            $table->foreignId('community_id')->constrained()->onDelete('cascade');
+            $table->text('content');
             $table->timestamps();
         });
     }
 
     public function down()
     {
-        Schema::dropIfExists('achievements');
+        Schema::dropIfExists('community_comments');
     }
-}
-
+};

@@ -5,13 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class LibraryFavorite extends Model
+class CommunitySavedPost extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'community_id',
         'user_id',
-        'library_item_id'
     ];
 
     public function user()
@@ -19,8 +19,9 @@ class LibraryFavorite extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function libraryItem()
+    public function Community()
     {
-        return $this->belongsTo(LibraryItem::class);
+        return $this->belongsTo(Community::class);
     }
 } 
+

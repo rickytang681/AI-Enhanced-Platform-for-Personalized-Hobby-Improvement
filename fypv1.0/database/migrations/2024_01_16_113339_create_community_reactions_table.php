@@ -8,17 +8,18 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('library_favorites', function (Blueprint $table) {
+        Schema::create('community_reactions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('library_item_id')->constrained('library_items')->onDelete('cascade');
+            $table->foreignId('community_id')->constrained()->onDelete('cascade');
+            $table->enum('reaction_type', ['like', 'dislike']);
             $table->timestamps();
-            $table->unique(['user_id', 'library_item_id']);
+            $table->unique(['user_id', 'community_id']);
         });
     }
 
     public function down()
     {
-        Schema::dropIfExists('library_favorites');
+        Schema::dropIfExists('community_reactions');
     }
-}; 
+};
