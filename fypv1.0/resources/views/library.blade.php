@@ -414,8 +414,8 @@
                 </form>
             </div>
         </div>
-                    </div>
-                </div>
+    </div>
+</div>
 
 <!-- Content View Modal -->
 <div class="modal fade" id="contentModal" tabindex="-1">

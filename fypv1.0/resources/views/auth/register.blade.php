@@ -85,15 +85,6 @@
                             </div>
                         </div>
                     </form>
-
-                    {{-- Footer Links --}}
-                    <div class="text-center mt-3">
-                        <a href="#">Terms of Service</a> |
-                        <a href="#">Privacy Policy</a> |
-                        <a href="#">Help</a> |
-                        <a href="#">Contact Us</a> |
-                        <a href="#">About Us</a>
-                    </div>
                 </div>
             </div>
         </div>

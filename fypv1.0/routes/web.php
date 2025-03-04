@@ -17,6 +17,26 @@ Route::get('/', function () {
     return view('main');
 })->middleware('guest')->name('main');
 
+Route::get('/terms', function () {
+    return view('terms');
+})->name('terms');
+
+Route::get('/policy', function () {
+    return view('policy');
+})->name('policy');
+
+Route::get('/help', function () {
+    return view('help');
+})->name('help');
+
+Route::get('/aboutUs', function () {    
+    return view('aboutUs');
+})->name('aboutUs');    
+
+Route::get('/contactUs', function () {
+    return view('contactUs');
+})->name('contactUs');   
+
 // Protected Routes
 Route::middleware(['auth'])->group(function () {
     // Dashboard

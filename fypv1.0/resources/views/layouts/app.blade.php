@@ -40,12 +40,12 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link {{ Request::is('about') ? 'active' : '' }}" href="#">
+                                <a class="nav-link {{ Request::is('about') ? 'active' : '' }}" href="{{ url('/aboutUs') }}">
                                     <i class="bi bi-info-circle"></i> About
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link {{ Request::is('contact') ? 'active' : '' }}" href="#">
+                                <a class="nav-link {{ Request::is('contact') ? 'active' : '' }}" href="{{ url('/contactUs') }}">
                                     <i class="bi bi-envelope"></i> Contact
                                 </a>
                             </li>
