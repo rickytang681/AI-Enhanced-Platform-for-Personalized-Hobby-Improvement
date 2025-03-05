@@ -117,6 +117,15 @@
                     </form>
                 </div>
 
+                <!-- Sort Options -->
+                <div class="mb-4">
+                    <select class="form-select" id="sort-select" name="sort">
+                        <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>Latest Posts</option>
+                        <option value="trending" {{ request('sort') == 'trending' ? 'selected' : '' }}>Trending (Most Popular)</option>
+                        <option value="higher_rate" {{ request('sort') == 'higher_rate' ? 'selected' : '' }}>Higher Rated</option>
+                    </select>
+                </div>
+
                 <!-- Create Post Button -->
                 <button class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#createPostModal">
                     <i class="bi bi-plus-circle"></i> Create New Post
@@ -162,19 +171,17 @@
                                 @endif
 
                                 <div class="d-flex justify-content-between align-items-center mt-3">
-                                    <!-- Reaction Buttons -->
-                                    <div class="btn-group">
-                                        <button class="btn btn-sm reaction-btn {{ $post->userReaction && $post->userReaction->reaction_type === 'like' ? 'btn-success' : 'btn-outline-success' }}"
-                                                data-item="{{ $post->id }}"
+                                    <!-- Reactions -->
+                                    <div class="reactions">
+                                        <button class="btn btn-sm {{ $post->userReaction && $post->userReaction->reaction_type === 'like' ? 'btn-success' : 'btn-outline-success' }} reaction-btn" 
+                                                data-item="{{ $post->id }}" 
                                                 data-type="like">
-                                            <i class="bi bi-hand-thumbs-up"></i>
-                                            <span class="likes-count">{{ $post->likes }}</span>
+                                            👍 <span class="likes-count">{{ $post->reactions()->where('reaction_type', 'like')->count() }}</span>
                                         </button>
-                                        <button class="btn btn-sm reaction-btn {{ $post->userReaction && $post->userReaction->reaction_type === 'dislike' ? 'btn-danger' : 'btn-outline-danger' }}"
-                                                data-item="{{ $post->id }}"
+                                        <button class="btn btn-sm {{ $post->userReaction && $post->userReaction->reaction_type === 'dislike' ? 'btn-danger' : 'btn-outline-danger' }} reaction-btn" 
+                                                data-item="{{ $post->id }}" 
                                                 data-type="dislike">
-                                            <i class="bi bi-hand-thumbs-down"></i>
-                                            <span class="dislikes-count">{{ $post->dislikes }}</span>
+                                            👎 <span class="dislikes-count">{{ $post->reactions()->where('reaction_type', 'dislike')->count() }}</span>
                                         </button>
                                     </div>
 
@@ -191,27 +198,35 @@
                                     <h6>Comments ({{ $post->comments->count() }})</h6>
                                     <form class="add-comment-form mb-2" data-item="{{ $post->id }}">
                                         <div class="input-group">
-                                            <input type="text" class="form-control" placeholder="Add a comment...">
+                                            <input type="text" 
+                                                   class="form-control comment-input" 
+                                                   placeholder="Add a comment..." 
+                                                   required>
                                             <button class="btn btn-primary" type="submit">Post</button>
                                         </div>
                                     </form>
                                     <div class="comments-list">
                                         @foreach($post->comments->take(3) as $comment)
-                                            <div class="comment">
+                                            <div class="comment border-bottom pb-2 mb-2">
                                                 <div class="d-flex align-items-center">
                                                     <img src="{{ $comment->user->profile_picture ? asset('storage/' . $comment->user->profile_picture) : asset('images/default-profile.png') }}" 
-                                                         class="profile-image-small me-2" 
+                                                         class="rounded-circle" 
+                                                         width="30" 
+                                                         height="30" 
                                                          alt="Profile">
-                                                    <strong>{{ $comment->user->name }}</strong>
-                                                    <small class="text-muted ms-2">{{ $comment->created_at->diffForHumans() }}</small>
+                                                    <div class="ms-2">
+                                                        <strong>{{ $comment->user->name }}</strong>
+                                                        <small class="text-muted ms-2">{{ $comment->created_at->diffForHumans() }}</small>
+                                                    </div>
                                                 </div>
-                                                <p class="mb-0 ms-4">{{ $comment->content }}</p>
+                                                <p class="mb-0 mt-2">{{ $comment->content }}</p>
                                             </div>
                                         @endforeach
                                     </div>
+
                                     @if($post->comments->count() > 3)
-                                        <button class="btn btn-link show-more-comments" 
-                                                data-item="{{ $post->id }}"
+                                        <button class="btn btn-link btn-sm show-more-comments" 
+                                                data-community="{{ $post->id }}" 
                                                 data-showing="less">
                                             Show more comments
                                         </button>

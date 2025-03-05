@@ -27,7 +27,7 @@ class Community extends Model
 
     public function comments()
     {
-        return $this->hasMany(CommunityComment::class);
+        return $this->hasMany(CommunityComment::class)->with('user')->latest();
     }
 
     public function reactions()
@@ -37,8 +37,12 @@ class Community extends Model
 
     public function savedByUsers()
     {
-        return $this->belongsToMany(User::class, 'community_saved_posts', 'community_id', 'user_id')
-            ->withTimestamps();
+        return $this->belongsToMany(User::class, 'community_saved_posts');
+    }
+
+    public function saves()
+    {
+        return $this->hasMany(CommunitySavedPost::class);
     }
 
     public function getLikesCountAttribute()

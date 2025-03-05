@@ -230,7 +230,7 @@
                                             <button class="btn btn-sm {{ $item->userReaction && $item->userReaction->type === 'like' ? 'btn-success' : 'btn-outline-success' }} reaction-btn" 
                                                     data-item="{{ $item->id }}" 
                                                     data-type="like">
-                                                �� <span class="likes-count">{{ $item->likes }}</span>
+                                                👍 <span class="likes-count">{{ $item->likes }}</span>
                                             </button>
                                             <button class="btn btn-sm {{ $item->userReaction && $item->userReaction->type === 'dislike' ? 'btn-danger' : 'btn-outline-danger' }} reaction-btn" 
                                                     data-item="{{ $item->id }}" 

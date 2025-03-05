@@ -1,6 +1,17 @@
 document.addEventListener('DOMContentLoaded', function() {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
+    // Sort functionality
+    const sortSelect = document.getElementById('sort-select');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+            const currentUrl = new URL(window.location.href);
+            const params = new URLSearchParams(currentUrl.search);
+            params.set('sort', this.value);
+            window.location.search = params.toString();
+        });
+    }
+
     // Reaction functionality
     document.querySelectorAll('.reaction-btn').forEach(button => {
         button.addEventListener('click', function() {
@@ -91,12 +102,98 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+
+    // Comment functionality
+    document.querySelectorAll('.add-comment-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const itemId = this.dataset.item;
+            const input = this.querySelector('.comment-input'); // Change to select by class
+            const content = input.value.trim();
+
+            if (!content) return;
+
+            // For debugging
+            console.log('Attempting to send comment:', content);
+
+            fetch(`/community/${itemId}/comment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    content: content
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error('Network response was not ok: ' + text);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Server response:', data); // Debug log
+
+                if (data.success) {
+                    const commentsList = this.closest('.comments-section').querySelector('.comments-list');
+                    const newComment = createCommentElement(data.comment);
+                    commentsList.insertBefore(newComment, commentsList.firstChild);
+                    input.value = '';
+                } else {
+                    throw new Error('Failed to add comment');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to add comment. Please try again.');
+            });
+        });
+    });
+
+    // Show more/less comments functionality
+    document.querySelectorAll('.show-more-comments').forEach(button => {
+        button.addEventListener('click', function() {
+            const communityId = this.dataset.community;
+            const showing = this.dataset.showing;
+            const commentsList = this.closest('.comments-section').querySelector('.comments-list');
+            
+            if (showing === 'less') {
+                // Show all comments
+                fetch(`/community/${communityId}/comments`)
+                    .then(response => response.json())
+                    .then(data => {
+                        commentsList.innerHTML = ''; // Clear existing comments
+                        data.comments.forEach(comment => {
+                            commentsList.appendChild(createCommentElement(comment));
+                        });
+                        this.textContent = 'Show less comments';
+                        this.dataset.showing = 'more';
+                    });
+            } else {
+                // Show only first 3 comments
+                fetch(`/community/${communityId}/comments`)
+                    .then(response => response.json())
+                    .then(data => {
+                        commentsList.innerHTML = ''; // Clear existing comments
+                        data.comments.slice(0, 3).forEach(comment => {
+                            commentsList.appendChild(createCommentElement(comment));
+                        });
+                        this.textContent = 'Show more comments';
+                        this.dataset.showing = 'less';
+                    });
+            }
+        });
+    });
 });
 
 // Helper function to create comment element
 function createCommentElement(comment) {
     const div = document.createElement('div');
-    div.className = 'comment mb-2';
+    div.className = 'comment border-bottom pb-2 mb-2';
     
     const profilePicture = comment.user.profile_picture 
         ? `/storage/${comment.user.profile_picture}`
@@ -105,39 +202,31 @@ function createCommentElement(comment) {
     div.innerHTML = `
         <div class="d-flex align-items-center">
             <img src="${profilePicture}" 
-                 class="profile-image-small me-2" 
+                 class="rounded-circle" 
+                 width="30" 
+                 height="30" 
                  alt="Profile">
-            <strong>${comment.user.name}</strong>
-            <small class="text-muted ms-2">${formatDate(comment.created_at)}</small>
+            <div class="ms-2">
+                <strong>${comment.user.name}</strong>
+                <small class="text-muted ms-2">${formatDate(comment.created_at)}</small>
+            </div>
         </div>
-        <p class="mb-1 ms-4">${comment.content}</p>
+        <p class="mb-0 mt-2">${comment.content}</p>
     `;
     
     return div;
 }
 
-// Helper function to format content
-function formatContent(content) {
-    if (!content) return '';
-    
-    return content.split('\n').map(line => {
-        line = line.trim();
-        return line.length > 0 ? `<p class="mb-2">${line}</p>` : '';
-    }).join('');
-}
-
-// Helper function to format dates
+// Helper function to format date
 function formatDate(dateString) {
     const date = new Date(dateString);
-    const now = new Date();
-    const diff = Math.floor((now - date) / 1000); // difference in seconds
-
-    if (diff < 60) return 'just now';
-    if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
-    if (diff < 604800) return `${Math.floor(diff / 86400)} days ago`;
-    
-    return date.toLocaleDateString();
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
 }
 
 // Make tags clickable

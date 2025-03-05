@@ -340,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function createCommentElement(comment) {
     const div = document.createElement('div');
-    div.className = 'comment mb-2';
+    div.className = 'comment border-bottom pb-2 mb-2';
     
     const profilePicture = comment.user.profile_picture 
         ? `/storage/${comment.user.profile_picture}`
@@ -349,12 +349,16 @@ function createCommentElement(comment) {
     div.innerHTML = `
         <div class="d-flex align-items-center">
             <img src="${profilePicture}" 
-                 class="profile-image-small me-2" 
+                 class="rounded-circle" 
+                 width="30" 
+                 height="30" 
                  alt="Profile">
-            <strong>${comment.user.name}</strong>
-            <small class="text-muted ms-2">${formatDate(comment.created_at)}</small>
+            <div class="ms-2">
+                <strong>${comment.user.name}</strong>
+                <small class="text-muted ms-2">${formatDate(comment.created_at)}</small>
+            </div>
         </div>
-        <p class="mb-1 ms-4">${comment.content}</p>
+        <p class="mb-0 mt-2">${comment.content}</p>
     `;
     
     return div;

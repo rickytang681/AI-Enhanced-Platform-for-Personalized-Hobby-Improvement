@@ -3,3 +3,8 @@
         title="{{ $isSaved ? 'Remove from saved' : 'Save for later' }}">
     <i class="bi {{ $isSaved ? 'bi-bookmark-fill' : 'bi-bookmark' }}"></i>
 </button>
+
+
+
+
+

@@ -77,7 +77,56 @@ class CommunityController extends Controller
             $query->where('tag', $request->tag);
         }
 
-        $posts = $query->latest()->paginate(10)->withQueryString();
+        // Apply sorting
+        $sort = $request->sort ?? 'newest';
+        switch ($sort) {
+            case 'trending':
+                // Most Popular based on likes and comments count
+                $query->withCount([
+                    'reactions as likes_count' => function($q) {
+                        $q->where('reaction_type', 'like');
+                    },
+                    'comments as comments_count'
+                ])
+                ->selectRaw('
+                    ((SELECT COUNT(*) FROM community_reactions 
+                    WHERE community_reactions.community_id = communities.id 
+                    AND reaction_type = "like") + 
+                    (SELECT COUNT(*) FROM community_comments 
+                    WHERE community_comments.community_id = communities.id)) as popularity_score
+                ')
+                ->orderByDesc('popularity_score');
+                break;
+            case 'higher_rate':
+                // Posts with high likes, high saves, and low dislikes
+                $query->withCount([
+                    'reactions as likes_count' => function($q) {
+                        $q->where('reaction_type', 'like');
+                    },
+                    'reactions as dislikes_count' => function($q) {
+                        $q->where('reaction_type', 'dislike');
+                    },
+                    'savedByUsers as saves_count'
+                ])
+                ->selectRaw('
+                    (SELECT COUNT(*) FROM community_reactions 
+                    WHERE community_reactions.community_id = communities.id 
+                    AND reaction_type = "like") + 
+                    (SELECT COUNT(*) FROM community_saved_posts 
+                    WHERE community_saved_posts.community_id = communities.id) - 
+                    ((SELECT COUNT(*) FROM community_reactions 
+                    WHERE community_reactions.community_id = communities.id 
+                    AND reaction_type = "dislike") * 2) as rating_score
+                ')
+                ->orderByDesc('rating_score');
+                break;
+            case 'newest':
+            default:
+                $query->latest();
+                break;
+        }
+
+        $posts = $query->paginate(10)->withQueryString();
         
         return view('community', compact('posts', 'tags'));
     }
@@ -155,19 +204,40 @@ class CommunityController extends Controller
 
     public function addComment(Request $request, Community $community)
     {
-        $validated = $request->validate([
-            'content' => 'required|max:1000'
-        ]);
+        try {
+            // Add logging to debug the incoming request
+            \Log::info('Comment Request:', [
+                'content' => $request->input('content'),
+                'all_data' => $request->all()
+            ]);
 
-        $comment = $community->comments()->create([
-            'user_id' => auth()->id(),
-            'content' => $validated['content']
-        ]);
+            $validated = $request->validate([
+                'content' => 'required|max:1000'
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'comment' => $comment->load('user')
-        ]);
+            $comment = $community->comments()->create([
+                'user_id' => auth()->id(),
+                'content' => $validated['content']
+            ]);
+
+            $comment->load('user'); // Make sure to load the user relationship
+
+            // Add logging to debug the created comment
+            \Log::info('Created Comment:', [
+                'comment' => $comment->toArray()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'comment' => $comment
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Comment creation failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create comment'
+            ], 500);
+        }
     }
 
     public function getComments(Community $community)
