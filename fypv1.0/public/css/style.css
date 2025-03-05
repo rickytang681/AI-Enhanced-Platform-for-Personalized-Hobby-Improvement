@@ -773,3 +773,151 @@ footer a:hover {
     color: #6c757d;
     font-style: italic;
 }
+
+/* System Administration Page Styles */
+.section {
+    margin-bottom: 2.5rem;
+}
+
+.section h2 {
+    color: #2c3e50;
+    font-size: 1.5rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+/* Table Enhancements */
+.table {
+    background-color: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    padding: 1rem;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+    color: #495057;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+    transition: background-color 0.2s ease;
+}
+
+/* Form Styling */
+#addUserForm {
+    padding: 1rem;
+}
+
+#addUserForm .form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+#addUserForm .form-control,
+#addUserForm .form-select {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+#addUserForm .form-control:focus,
+#addUserForm .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Button Styling */
+.btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.875rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+    transform: translateY(-1px);
+}
+
+/* Card Enhancements */
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Table Responsive Improvements */
+.table-responsive {
+    border-radius: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Status and Role Indicators */
+.text-muted {
+    font-style: italic;
+    color: #6c757d !important;
+}
+
+/* Main Container Spacing */
+.container h1 {
+    color: #2c3e50;
+    margin-bottom: 2rem;
+    font-weight: 600;
+    padding-bottom: 1rem;
+    border-bottom: 3px solid #007bff;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .section {
+        margin-bottom: 2rem;
+    }
+
+    .card {
+        margin-bottom: 1.5rem;
+    }
+
+    .table thead th {
+        padding: 0.75rem;
+    }
+
+    .table tbody td {
+        padding: 0.75rem;
+    }
+
+    .container h1 {
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+    }
+}

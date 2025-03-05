@@ -88,8 +88,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/recommendation', [RecommendationController::class, 'index'])->name('recommendation');
 
     // Admin Routes
-    Route::middleware(['admin'])->group(function () {
+    Route::middleware(['auth', 'admin'])->group(function () {
         Route::get('/system', [SystemController::class, 'index'])->name('system');
+        Route::post('/system/users', [SystemController::class, 'addUser'])->name('system.addUser');
+        Route::delete('/system/users/{user}', [SystemController::class, 'deleteUser'])->name('system.deleteUser');
+        Route::delete('/system/resources/{resource}', [SystemController::class, 'deleteResource'])->name('system.deleteResource');
+        Route::delete('/system/comments/{comment}', [SystemController::class, 'deleteComment'])->name('system.deleteComment');
+        Route::delete('/system/community-posts/{post}', [SystemController::class, 'deleteCommunityPost'])->name('system.deleteCommunityPost');
+        Route::delete('/system/community-comments/{comment}', [SystemController::class, 'deleteCommunityComment'])->name('system.deleteCommunityComment');
     });
 });
 

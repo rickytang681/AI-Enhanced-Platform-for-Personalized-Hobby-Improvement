@@ -25,6 +25,8 @@ class User extends Authenticatable
         'password',
         'hobbies',
         'experience',
+        'role',
+        'profile_picture',
     ];
     
 
