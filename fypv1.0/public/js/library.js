@@ -137,26 +137,75 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Rating functionality
     document.querySelectorAll('.rating-star').forEach(star => {
+        star.addEventListener('mouseover', function() {
+            const ratingValue = parseInt(this.dataset.rating);
+            const stars = this.parentElement.querySelectorAll('.rating-star');
+            
+            stars.forEach((s, index) => {
+                if (index < ratingValue) {
+                    s.classList.remove('bi-star');
+                    s.classList.add('bi-star-fill');
+                } else {
+                    s.classList.remove('bi-star-fill');
+                    s.classList.add('bi-star');
+                }
+            });
+        });
+
+        star.addEventListener('mouseleave', function() {
+            const container = this.closest('.stars');
+            const currentRating = parseInt(container.dataset.userRating) || 0;
+            const stars = container.querySelectorAll('.rating-star');
+            
+            stars.forEach((s, index) => {
+                if (index < currentRating) {
+                    s.classList.remove('bi-star');
+                    s.classList.add('bi-star-fill');
+                } else {
+                    s.classList.remove('bi-star-fill');
+                    s.classList.add('bi-star');
+                }
+            });
+        });
+
         star.addEventListener('click', function() {
             const rating = this.dataset.rating;
             const itemId = this.dataset.item;
+            const container = this.closest('.stars');
+            const ratingText = container.querySelector('.text-muted');
 
             fetch(`/library/${itemId}/rate`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({ rating: rating })
             })
             .then(response => response.json())
             .then(data => {
-                // Update rating display
-                const ratingStars = this.closest('.rating').querySelectorAll('.bi-star, .bi-star-fill');
-                ratingStars.forEach((star, index) => {
-                    star.classList.remove('bi-star', 'bi-star-fill');
-                    star.classList.add(index < data.rating ? 'bi-star-fill' : 'bi-star');
-                });
+                if (data.success) {
+                    // Update the stars
+                    container.dataset.userRating = rating;
+                    const stars = container.querySelectorAll('.rating-star');
+                    stars.forEach((s, index) => {
+                        if (index < rating) {
+                            s.classList.remove('bi-star');
+                            s.classList.add('bi-star-fill');
+                        } else {
+                            s.classList.remove('bi-star-fill');
+                            s.classList.add('bi-star');
+                        }
+                    });
+
+                    // Update the rating text
+                    ratingText.textContent = `(${data.average_rating} / ${data.rating_count} ${data.rating_count === 1 ? 'rating' : 'ratings'})`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to update rating. Please try again.');
             });
         });
     });
@@ -246,7 +295,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>`;
             } else {
                 contentContainer.innerHTML = `
-                    <div class="content-text">
+                    <div class="content-text p-3 border rounded">
                         ${formatContent(content)}
                     </div>`;
             }
@@ -311,22 +360,15 @@ function createCommentElement(comment) {
     return div;
 }
 
-// Helper function to format text content
+// Helper function to format content (preserve line breaks and escape HTML)
 function formatContent(content) {
-    if (!content) return '';
-    
-    // Convert line breaks to HTML
-    return content.split('\n').map(line => {
-        line = line.trim();
-        if (line.match(/^\d+\./)) {
-            // Number lists
-            return `<p class="mb-2"><strong>${line.split('.')[0]}.</strong>${line.substring(line.indexOf('.') + 1)}</p>`;
-        } else if (line.length > 0) {
-            // Regular paragraphs
-            return `<p class="mb-2">${line}</p>`;
-        }
-        return '';
-    }).join('');
+    return content
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+        .replace(/\n/g, '<br>');
 }
 
 // Add a helper function to format dates

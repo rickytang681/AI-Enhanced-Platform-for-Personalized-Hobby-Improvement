@@ -514,353 +514,262 @@ footer a:hover {
     }
 }
 
-/* Comments section styles */
-.comments-toggle {
-    text-align: center;
-    margin-top: 1rem;
+/* Library Resource Cards */
+.resources-list {
+    max-width: 800px;
+    margin: 0 auto;
 }
 
-.show-more-comments {
-    text-decoration: none;
-    color: #6c757d;
-    font-size: 0.9rem;
-    padding: 0;
-}
-
-.show-more-comments:hover {
-    color: #0d6efd;
-    text-decoration: underline;
-}
-
-.comment {
-    transition: all 0.3s ease;
-}
-
-.comments-list {
-    max-height: 500px;
-    overflow-y: auto;
-}
-
-/* Community Page Specific Styles */
-.post-card {
+.card {
+    transition: transform 0.2s, box-shadow 0.2s;
     border: none;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    background-color: #ffffff;
-    margin-bottom: 1rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
 }
 
-.post-card:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
-.post-cover {
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 0.75rem;
+/* Rating System */
+.rating-container .stars {
+    display: inline-block;
 }
 
-.post-cover img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-}
-
-/* Search and Filter Section */
-.search-filter-container {
-    background-color: #f8f9fa;
-    padding: 1rem;
-    border-radius: 6px;
-    margin-bottom: 1rem;
-}
-
-.search-box {
-    position: relative;
-}
-
-.search-box .search-icon {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #6c757d;
-    font-size: 0.9rem;
-}
-
-.search-box input {
-    padding: 0.5rem;
-    padding-right: 30px;
-    border-radius: 4px;
-    border: 1px solid #ced4da;
-    font-size: 0.9rem;
-}
-
-/* Create Post Button and Form */
-#createPostBtn {
-    padding: 0.5rem 1rem;
-    font-weight: 500;
-    border-radius: 4px;
-    font-size: 0.9rem;
-}
-
-#createPostForm {
-    background-color: #ffffff;
-    padding: 1rem;
-    border-radius: 6px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    margin-bottom: 1rem;
-}
-
-/* Post Content */
-.card-title {
+.rating-container .bi-star,
+.rating-container .bi-star-fill {
+    color: #ffc107;
     font-size: 1.1rem;
-    font-weight: 600;
-    color: #212529;
-    margin-bottom: 0.25rem;
+    cursor: pointer;
+    transition: transform 0.2s;
 }
 
-.badge {
-    padding: 0.35em 0.65em;
-    font-weight: 500;
-    font-size: 0.75rem;
+.rating-container .bi-star:hover,
+.rating-container .bi-star-fill:hover {
+    transform: scale(1.2);
 }
 
-/* Reaction Buttons */
-.btn-group {
-    gap: 0.25rem;
+/* Resource Card Elements */
+.card-title {
+    margin-right: 1rem;
+    font-size: 1.25rem;
+}
+
+.card-title a {
+    color: #333;
+    text-decoration: none;
+}
+
+.card-title a:hover {
+    color: #0056b3;
+}
+
+/* Reactions and Buttons */
+.reactions {
+    display: flex;
+    gap: 0.5rem;
 }
 
 .reaction-btn, .save-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.35rem 0.75rem;
-    border-radius: 4px;
-    font-weight: 400;
-    font-size: 0.9rem;
+    transition: transform 0.2s;
+    padding: 0.25rem 0.5rem;
 }
 
-.reaction-btn i, .save-btn i {
-    font-size: 0.9rem;
+.reaction-btn:hover, .save-btn:hover {
+    transform: scale(1.05);
 }
 
-/* Comments Section */
-.comments-section {
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid #dee2e6;
+/* Resource Meta Information */
+.resource-meta {
+    margin: 10px 0;
 }
 
-.comments-list {
-    max-height: 300px;
-    overflow-y: auto;
-    padding-right: 0.75rem;
+.category-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
-.comment {
-    padding: 0.5rem;
-    border-radius: 4px;
-    margin-bottom: 0.5rem;
-    background-color: #f8f9fa;
-    font-size: 0.9rem;
-}
-
-/* Profile Images */
-.profile-image-small {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    margin-right: 0.5rem;
-}
-
-/* Modal Styles */
-.modal-lg {
-    max-width: 800px;
-}
-
-.modal-content {
-    border-radius: 8px;
-    border: none;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.modal-header {
-    border-bottom: 1px solid #dee2e6;
-    background-color: #f8f9fa;
-    border-radius: 8px 8px 0 0;
-}
-
-.modal-footer {
-    border-top: 1px solid #dee2e6;
-    background-color: #f8f9fa;
-    border-radius: 0 0 8px 8px;
-}
-
-.modal-body {
-    padding: 1.5rem;
-}
-
-/* Form Styles */
-.form-label {
-    font-weight: 500;
-    color: #495057;
-}
-
-.form-control:focus {
-    border-color: #80bdff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-
-.form-select:focus {
-    border-color: #80bdff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-
-/* Button Styles */
-.modal .btn {
-    padding: 0.375rem 1.5rem;
-}
-
-.modal .btn-primary {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-}
-
-.modal .btn-secondary {
-    background-color: #6c757d;
-    border-color: #6c757d;
-}
-
-/* Form Elements */
-.form-control {
-    font-size: 0.9rem;
-    padding: 0.5rem;
-}
-
-.form-check-label {
-    font-size: 0.9rem;
-}
-
-/* Text Styles */
-.text-muted {
-    font-size: 0.8rem;
-}
-
-.card-text {
-    font-size: 0.9rem;
-    margin-bottom: 0.75rem;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    .post-card {
-        padding: 0.75rem;
-    }
-
-    .search-filter-container {
-        padding: 0.75rem;
-    }
-
-    .post-cover img {
-        height: 150px;
-    }
-
-    .reaction-btn, .save-btn {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.85rem;
-    }
-}
-
-/* Filter Styles */
-.filter-section {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.filter-section .card-body {
-    padding: 1.25rem;
-}
-
-.filter-section .form-label {
-    font-weight: 500;
-    color: #495057;
-    margin-bottom: 0.5rem;
-}
-
-.filter-section .form-select {
-    border-radius: 5px;
-    border: 1px solid #ced4da;
-}
-
-.filter-section .form-check {
-    margin-bottom: 0.5rem;
-}
-
-.filter-section .form-check-input:checked {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-}
-
-.filter-section .btn-group {
-    width: 100%;
-}
-
-.filter-section .input-group {
-    margin-bottom: 1rem;
-}
-
-/* Clear Filters Button */
-.btn-outline-secondary.mt-2 {
-    width: 100%;
-    margin-top: 1rem !important;
-    border-style: dashed;
-}
-
-.btn-outline-secondary.mt-2:hover {
-    background-color: #f8f9fa;
-    color: #dc3545;
-}
-
-/* Tag Styles */
 .badge {
     padding: 0.5em 0.8em;
     font-weight: 500;
-    font-size: 0.75rem;
-    text-transform: capitalize;
+    font-size: 0.85rem;
 }
 
+.resource-type {
+    margin-top: 0.5rem;
+    color: #6c757d;
+}
+
+.resource-type i {
+    margin-right: 0.3rem;
+}
+
+/* Badge Colors */
 .badge.bg-primary {
-    background-color: #007bff !important;
+    background-color: #0d6efd !important;
 }
 
 .badge.bg-secondary {
     background-color: #6c757d !important;
 }
 
-/* Add hover effect for tags */
-.badge {
-    transition: all 0.2s ease-in-out;
+.badge.bg-info {
+    background-color: #0dcaf0 !important;
 }
 
-.badge:hover {
-    transform: translateY(-1px);
+/* Comments Section */
+.comments-section {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #dee2e6;
+}
+
+.comments-list {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 0.5rem;
+}
+
+.comment {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.comment:last-child {
+    margin-bottom: 0;
+}
+
+.comment .profile-image-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.add-comment-form {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.add-comment-form input {
+    flex: 1;
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    border: 1px solid #dee2e6;
+}
+
+.add-comment-form button {
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+}
+
+.show-more-comments {
+    display: block;
+    text-align: center;
+    color: #6c757d;
+    text-decoration: none;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.show-more-comments:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+/* Resource Metadata */
+.resource-metadata {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .resources-list {
+        padding: 0 1rem;
+    }
+
+    .card {
+        margin-bottom: 1rem;
+    }
+
+    .reactions {
+        flex-wrap: wrap;
+    }
+
+    .comment {
+        padding: 0.5rem;
+    }
+}
+/* Resource Card Styles */
+.card {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: box-shadow 0.3s ease;
 }
 
-/* Make tags clickable */
-.badge.bg-secondary {
+.card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.content-text {
+    background-color: #f8f9fa;
+    font-family: monospace;
+}
+
+.comments-section {
+    border-top: 1px solid #dee2e6;
+    padding-top: 1rem;
+}
+
+.comment {
+    transition: background-color 0.2s ease;
+}
+
+.comment:hover {
+    background-color: #f8f9fa;
+}
+
+.rating-star {
+    cursor: pointer;
+    color: #ffc107;
+}
+
+.reactions button {
+    transition: transform 0.2s ease;
+}
+
+.reactions button:hover {
+    transform: scale(1.05);
+}
+
+/* Modal styles */
+.view-content {
     cursor: pointer;
 }
 
-.badge.bg-secondary:hover {
-    background-color: #5a6268 !important;
+.view-content:hover {
+    color: #0d6efd !important;
 }
 
-/* Spacing between badges */
-.gap-2 {
-    gap: 0.5rem !important;
+#contentModal .modal-dialog {
+    max-width: 800px;
+}
+
+#contentModal .content-text {
+    max-height: 70vh;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+    font-family: monospace;
+    white-space: pre-wrap;
+}
+
+#contentModal .description {
+    color: #6c757d;
+    font-style: italic;
 }

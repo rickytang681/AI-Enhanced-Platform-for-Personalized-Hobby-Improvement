@@ -143,127 +143,153 @@
                 <div class="mb-4">
                     <select class="form-select" id="sort-select">
                         <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>Newest</option>
-                        <option value="popular" {{ request('sort') == 'popular' ? 'selected' : '' }}>Most Popular</option>
-                        <option value="rated" {{ request('sort') == 'rated' ? 'selected' : '' }}>Highly Rated</option>
+                        <option value="popular" {{ request('sort') == 'popular' ? 'selected' : '' }}>Most Popular (Most Likes)</option>
+                        <option value="rated" {{ request('sort') == 'rated' ? 'selected' : '' }}>Highly Rated (Best Average Rating)</option>
                     </select>
                 </div>
 
                 <!-- Resources List -->
                 <div class="resources-list">
                     @foreach($items as $item)
-                        <div class="card mb-3">
+                        <div class="card mb-4">
                             <div class="card-body">
-                                <h5 class="card-title">
-                                    <a href="#" class="text-decoration-none view-content" 
-                                       data-bs-toggle="modal" 
-                                       data-bs-target="#contentModal"
-                                       data-title="{{ $item->title }}"
-                                       data-type="{{ $item->type }}"
-                                       data-content="{{ $item->content }}"
-                                       data-video="{{ $item->video_url }}"
-                                       data-description="{{ $item->description }}">
-                                        {{ $item->title }}
-                                    </a>
-                                </h5>
-                                <p class="card-text">{{ $item->description }}</p>
-
-                                @if($item->type === 'video')
-                                    <div class="embed-responsive embed-responsive-16by9 mb-3">
-                                        <iframe class="embed-responsive-item" src="{{ $item->video_url }}" allowfullscreen></iframe>
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <h5 class="card-title mb-3">
+                                        <a href="#" 
+                                           class="view-content text-decoration-none text-dark" 
+                                           data-bs-toggle="modal" 
+                                           data-bs-target="#contentModal"
+                                           data-title="{{ $item->title }}"
+                                           data-type="{{ $item->type }}"
+                                           data-content="{{ $item->content }}"
+                                           data-video="{{ $item->video_url }}"
+                                           data-description="{{ $item->description }}">
+                                            {{ $item->title }}
+                                        </a>
+                                    </h5>
+                                    <div class="d-flex gap-2">
+                                        @if($item->file_path)
+                                            <a href="{{ route('library.download', $item->id) }}" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Download Resource">
+                                                <i class="bi bi-download"></i>
+                                            </a>
+                                        @endif
+                                        <span class="badge bg-secondary">{{ $item->type }}</span>
                                     </div>
-                                @else
-                                    <div class="content-preview mb-3">
-                                        {{ Str::limit($item->content, 200) }}
-                                    </div>
-                                @endif
+                                </div>
+                                
+                                <p class="card-text text-muted mb-3">{{ $item->description }}</p>
 
-                                @if($item->file_path)
-                                    <a href="{{ route('library.download', $item) }}" class="btn btn-sm btn-outline-primary mb-3">
-                                        Download Resource
-                                    </a>
-                                @endif
-
+                                <!-- Resource Content -->
+                                <div class="resource-content mb-4">
+                                    @if($item->type === 'video')
+                                        <div class="ratio ratio-16x9 mb-3">
+                                            <iframe src="{{ $item->video_url }}" 
+                                                    allowfullscreen 
+                                                    class="rounded"></iframe>
+                                        </div>
+                                    @else
+                                        <div class="content-text border rounded p-3 mb-3" style="max-height: 200px; overflow-y: auto;">
+                                            {!! nl2br(e($item->content)) !!}
+                                        </div>
+                                    @endif
+                                </div>
+                                
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <div class="d-flex align-items-center">
-                                        <!-- Star Rating -->
-                                        <div class="rating me-3">
+                                    <div class="rating-container">
+                                        <div class="stars" data-user-rating="{{ $item->userRating(auth()->user()) ? $item->userRating(auth()->user())->rating : 0 }}">
                                             @for($i = 1; $i <= 5; $i++)
-                                                <i class="bi bi-star{{ $item->userRating(auth()->user()) && $item->userRating(auth()->user())->rating >= $i ? '-fill' : '' }} text-warning rating-star" 
-                                                   data-rating="{{ $i }}" 
+                                                <i class="bi bi-star rating-star {{ $item->userRating(auth()->user()) && $item->userRating(auth()->user())->rating >= $i ? 'bi-star-fill' : '' }}"
+                                                   data-rating="{{ $i }}"
                                                    data-item="{{ $item->id }}"></i>
                                             @endfor
-                                            <small class="text-muted ms-2">({{ $item->rating_count }})</small>
+                                            <span class="ms-2 text-muted small">
+                                                ({{ number_format($item->average_rating, 1) }} / {{ $item->rating_count }} {{ Str::plural('rating', $item->rating_count) }})
+                                            </span>
                                         </div>
+                                    </div>
+                                    <div class="category-badges">
+                                        <span class="badge bg-primary">{{ $item->category }}</span>
+                                        <span class="badge bg-info">{{ $item->subcategory }}</span>
+                                        <span class="badge bg-secondary">{{ ucfirst($item->type) }}</span>
+                                    </div>
+                                </div>
 
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex gap-2">
                                         <!-- Save Button -->
                                         <button class="btn btn-sm {{ $item->isSavedBy(auth()->user()) ? 'btn-primary' : 'btn-outline-primary' }} save-btn"
                                                 data-item="{{ $item->id }}"
                                                 title="{{ $item->isSavedBy(auth()->user()) ? 'Remove from saved' : 'Save for later' }}">
                                             <i class="bi bi-bookmark{{ $item->isSavedBy(auth()->user()) ? '-fill' : '' }}"></i>
                                         </button>
-                                    </div>
 
-                                    <div class="reactions">
-                                        <button class="btn btn-sm btn-outline-success reaction-btn" 
-                                                data-item="{{ $item->id }}" 
-                                                data-type="like"
-                                                data-active="{{ $item->reactions()->where('user_id', auth()->id())->where('reaction_type', 'like')->exists() }}">
-                                            👍 <span class="likes-count">{{ $item->likes }}</span>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger reaction-btn" 
-                                                data-item="{{ $item->id }}" 
-                                                data-type="dislike"
-                                                data-active="{{ $item->reactions()->where('user_id', auth()->id())->where('reaction_type', 'dislike')->exists() }}">
-                                            👎 <span class="dislikes-count">{{ $item->dislikes }}</span>
-                                        </button>
+                                        <!-- Reactions -->
+                                        <div class="reactions">
+                                            <button class="btn btn-sm {{ $item->userReaction && $item->userReaction->type === 'like' ? 'btn-success' : 'btn-outline-success' }} reaction-btn" 
+                                                    data-item="{{ $item->id }}" 
+                                                    data-type="like">
+                                                �� <span class="likes-count">{{ $item->likes }}</span>
+                                            </button>
+                                            <button class="btn btn-sm {{ $item->userReaction && $item->userReaction->type === 'dislike' ? 'btn-danger' : 'btn-outline-danger' }} reaction-btn" 
+                                                    data-item="{{ $item->id }}" 
+                                                    data-type="dislike">
+                                                👎 <span class="dislikes-count">{{ $item->dislikes }}</span>
+                                            </button>
+                                        </div>
                                     </div>
+                                    <small class="text-muted">
+                                        Posted by {{ $item->user->name }} {{ $item->created_at->diffForHumans() }}
+                                    </small>
                                 </div>
 
                                 <!-- Comments Section -->
                                 <div class="comments-section mt-4">
-                                    <h6>Comments ({{ $item->comments->count() }})</h6>
+                                    <h6 class="mb-3">Comments</h6>
                                     
                                     <!-- Add Comment Form -->
                                     <form class="add-comment-form mb-3" data-item="{{ $item->id }}">
                                         <div class="input-group">
-                                            <input type="text" class="form-control" placeholder="Add a comment...">
-                                            <button class="btn btn-primary" type="submit">Post</button>
+                                            <input type="text" 
+                                                   class="form-control" 
+                                                   placeholder="Add a comment..." 
+                                                   required>
+                                            <button type="submit" class="btn btn-primary">Post</button>
                                         </div>
                                     </form>
 
                                     <!-- Comments List -->
                                     <div class="comments-list" data-item="{{ $item->id }}">
                                         @foreach($item->comments->take(3) as $comment)
-                                            <div class="comment mb-2">
+                                            <div class="comment border-bottom pb-2 mb-2">
                                                 <div class="d-flex align-items-center">
                                                     <img src="{{ $comment->user->profile_picture ? asset('storage/' . $comment->user->profile_picture) : asset('images/default-profile.png') }}" 
-                                                         class="profile-image-small me-2" alt="Profile">
-                                                    <strong>{{ $comment->user->name }}</strong>
-                                                    <small class="text-muted ms-2">{{ $comment->created_at->diffForHumans() }}</small>
+                                                         class="rounded-circle" 
+                                                         width="30" 
+                                                         height="30" 
+                                                         alt="Profile">
+                                                    <div class="ms-2">
+                                                        <strong>{{ $comment->user->name }}</strong>
+                                                        <small class="text-muted ms-2">{{ $comment->created_at->diffForHumans() }}</small>
+                                                    </div>
                                                 </div>
-                                                <p class="mb-1 ms-4">{{ $comment->content }}</p>
+                                                <p class="mb-0 mt-2">{{ $comment->content }}</p>
                                             </div>
                                         @endforeach
                                     </div>
-                                    
+
                                     @if($item->comments->count() > 3)
-                                        <div class="comments-toggle">
-                                            <button class="btn btn-link show-more-comments" 
-                                                    data-item="{{ $item->id }}" 
-                                                    data-showing="less">
-                                                Show more comments
-                                            </button>
-                                        </div>
+                                        <button class="btn btn-link btn-sm show-more-comments" 
+                                                data-item="{{ $item->id }}" 
+                                                data-showing="less">
+                                            Show more comments
+                                        </button>
                                     @endif
                                 </div>
-                    </div>
+                            </div>
                         </div>
                     @endforeach
-
-                    <!-- Pagination -->
-                    <div class="d-flex justify-content-center align-items-center mt-4">
-                        {{ $items->onEachSide(1)->links('pagination::bootstrap-4') }}
-                    </div>
                 </div>
             </div>
         </div>

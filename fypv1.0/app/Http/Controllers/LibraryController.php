@@ -6,6 +6,7 @@ use App\Models\LibraryItem;
 use App\Models\LibraryReaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class LibraryController extends Controller
 {
@@ -17,6 +18,10 @@ class LibraryController extends Controller
     public function index(Request $request)
     {
         $query = LibraryItem::query();
+        
+        // Get categories and subcategories
+        $categories = $this->getCategories();
+        $subcategories = $this->getSubcategories();
 
         // Add saved filter
         if ($request->saved === 'true') {
@@ -75,23 +80,23 @@ class LibraryController extends Controller
         $sort = $request->sort ?? 'newest';
         switch ($sort) {
             case 'popular':
+                // Most Popular based on likes count
                 $query->orderBy('likes', 'desc');
+                break;
+            case 'rated':
+                // Highly Rated based on average rating
+                $query->orderBy('average_rating', 'desc')
+                      ->having('rating_count', '>', 0); // Only show items with ratings
                 break;
             case 'newest':
                 $query->orderBy('created_at', 'desc');
                 break;
-            case 'rated':
-                $query->orderByRaw('(likes - dislikes) DESC');
-                break;
         }
 
-        $items = $query->with('user')->paginate(10)->withQueryString();
-
-        return view('library', [
-            'items' => $items,
-            'categories' => $this->getCategories(),
-            'subcategories' => $this->getSubcategories(),
-        ]);
+        $items = $query->paginate(10);
+        
+        // Pass all required variables to the view
+        return view('library', compact('items', 'categories', 'subcategories'));
     }
 
     public function store(Request $request)
@@ -308,17 +313,19 @@ class LibraryController extends Controller
             ['rating' => $validated['rating']]
         );
 
-        // Update average rating
+        // Recalculate average rating
+        $averageRating = $item->ratings()->avg('rating');
+        $ratingCount = $item->ratings()->count();
+
         $item->update([
-            'average_rating' => $item->ratings()->avg('rating'),
-            'rating_count' => $item->ratings()->count()
+            'average_rating' => round($averageRating, 1),
+            'rating_count' => $ratingCount
         ]);
 
         return response()->json([
             'success' => true,
-            'rating' => $validated['rating'],
-            'average' => $item->average_rating,
-            'count' => $item->rating_count
+            'average_rating' => number_format($averageRating, 1),
+            'rating_count' => $ratingCount
         ]);
     }
 

@@ -2,14 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 
 class LibraryItem extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'user_id',
         'title',
@@ -78,4 +74,14 @@ class LibraryItem extends Model
     {
         return $this->ratings()->where('user_id', $user->id)->first();
     }
-} 
+
+    public function getAverageRatingAttribute()
+    {
+        return round($this->ratings()->avg('rating'), 1);
+    }
+
+    public function getRatingCountAttribute()
+    {
+        return $this->ratings()->count();
+    }
+}
