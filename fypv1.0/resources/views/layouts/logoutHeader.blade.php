@@ -77,6 +77,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {{ Request::is('hobbies*') ? 'active' : '' }}" href="{{ route('hobbies.index') }}">
+                                    <i class="bi bi-palette"></i> Hobbies
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link {{ Request::is('goals*') ? 'active' : '' }}" href="{{ route('goals.index') }}">
                                     <i class="bi bi-trophy"></i> Goals
                                 </a>

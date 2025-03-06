@@ -8,6 +8,8 @@ use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\RecommendationController;
 use App\Http\Controllers\SystemController;
+use App\Http\Controllers\HobbyController;
+use App\Http\Controllers\MilestoneController;
 
 // Authentication Routes
 Auth::routes();
@@ -43,13 +45,23 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::redirect('/home', '/dashboard');
 
-    // Goals
-    Route::controller(GoalController::class)->group(function () {
-        Route::get('/goals', 'index')->name('goals.index');
-        Route::post('/goals', 'store')->name('goals.store');
-        Route::post('/goals/{goal}/milestones', 'addMilestone')->name('goals.milestones.store');
-        Route::post('/goals/{goal}/milestones/{milestone}/toggle', 'toggleMilestone')->name('goals.milestones.toggle');
-        Route::delete('/goals/{goal}', 'destroy')->name('goals.destroy');
+    // Goal Routes
+    Route::middleware(['auth'])->group(function () {
+        // Basic CRUD routes for goals
+        Route::resource('goals', GoalController::class);
+        
+        // Milestone routes (nested under goals)
+        Route::post('goals/{goal}/milestones', [MilestoneController::class, 'store'])
+            ->name('goals.milestones.store');
+        
+        Route::put('goals/{goal}/milestones/{milestone}', [MilestoneController::class, 'update'])
+            ->name('goals.milestones.update');
+        
+        Route::delete('goals/{goal}/milestones/{milestone}', [MilestoneController::class, 'destroy'])
+            ->name('goals.milestones.destroy');
+        
+        // Toggle milestone completion status
+        Route::post('goals/{goal}/milestones/{milestone}/toggle', [MilestoneController::class, 'toggle']);
     });
 
     // Profile
@@ -97,5 +109,16 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/system/community-posts/{post}', [SystemController::class, 'deleteCommunityPost'])->name('system.deleteCommunityPost');
         Route::delete('/system/community-comments/{comment}', [SystemController::class, 'deleteCommunityComment'])->name('system.deleteCommunityComment');
     });
+
+    // Hobby Management
+    Route::controller(HobbyController::class)->group(function () {
+        Route::get('/hobbies', 'index')->name('hobbies.index');
+        Route::post('/hobbies', 'store')->name('hobbies.store');
+        Route::get('/hobbies/{hobby}/edit', 'edit')->name('hobbies.edit');
+        Route::put('/hobbies/{hobby}', 'update')->name('hobbies.update');
+        Route::delete('/hobbies/{hobby}', 'destroy')->name('hobbies.destroy');
+    });
+
+    Route::resource('hobbies', HobbyController::class)->middleware('auth');
 });
 

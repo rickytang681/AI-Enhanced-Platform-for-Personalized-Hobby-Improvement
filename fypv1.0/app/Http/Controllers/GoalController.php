@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Goal;
+use App\Models\Hobby;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class GoalController extends Controller
 {
@@ -15,29 +17,37 @@ class GoalController extends Controller
     public function index()
     {
         $user = auth()->user();
+        $hobbies = $user->hobbies;
+        
+        if ($hobbies->isEmpty()) {
+            return redirect()->route('hobbies.index')
+                ->with('warning', 'Please create at least one hobby before setting goals.');
+        }
+
         $goals = Goal::where('user_id', $user->id)
-                    ->with('milestones')
+                    ->with(['milestones', 'hobby'])
                     ->orderBy('created_at', 'desc')
                     ->get();
 
-        $userHobbies = [];
-        if ($user->hobbies) {
-            $userHobbies = array_filter(explode(',', $user->hobbies));
-        }
+        // Group goals by hobby
+        $goalsByHobby = $goals->groupBy('hobby_id');
+        
+        // Find hobbies without goals
+        $hobbiesWithoutGoals = $hobbies->whereNotIn('id', $goals->pluck('hobby_id')->unique());
 
         return view('goal', [
             'goals' => $goals,
-            'userHobbies' => $userHobbies,
-            'showHobbyWarning' => empty($userHobbies)
+            'hobbies' => $hobbies,
+            'goalsByHobby' => $goalsByHobby,
+            'hobbiesWithoutGoals' => $hobbiesWithoutGoals
         ]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'hobby_id' => 'required|exists:hobbies,id',
             'goal' => 'required|string|max:255',
-            'hobbies' => 'required|array|min:1',
-            'experience' => 'required|array|min:1',
             'deadline' => 'required|date|after:today',
             'milestones' => 'required|array|min:1',
             'milestone_dates' => 'required|array|min:1',
@@ -53,16 +63,9 @@ class GoalController extends Controller
             }
         }
 
-        $hobbies = array_map(function($hobby, $experience) {
-            return [
-                'name' => $hobby,
-                'experience' => $experience
-            ];
-        }, $validated['hobbies'], $validated['experience']);
-
         $goal = Goal::create([
             'user_id' => auth()->id(),
-            'hobbies' => $hobbies,
+            'hobby_id' => $validated['hobby_id'],
             'goal' => $validated['goal'],
             'deadline' => $validated['deadline'],
             'progress' => 0,
@@ -80,7 +83,7 @@ class GoalController extends Controller
 
         return redirect()->route('goals.index')
             ->with('success', 'Goal created successfully!')
-            ->with('activeTab', 'my-goals'); // Add this to switch to My Goals tab
+            ->with('activeTab', 'my-goals');
     }
 
     public function addMilestone(Request $request, Goal $goal)
@@ -132,7 +135,105 @@ class GoalController extends Controller
 
     public function destroy(Goal $goal)
     {
-        $goal->delete();
-        return redirect()->route('goals.index')->with('success', 'Goal deleted successfully.');
+        try {
+            // Authorize the action
+            $this->authorize('delete', $goal);
+
+            DB::beginTransaction();
+            
+            $goal->delete();
+            
+            DB::commit();
+            
+            return redirect()->route('goals.index')
+                ->with('success', 'Goal and all associated milestones deleted successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('goals.index')
+                ->with('error', 'Failed to delete goal. Please try again.');
+        }
     }
-} 
+
+    public function update(Request $request, Goal $goal)
+    {
+        // Authorize the action
+        $this->authorize('update', $goal);
+
+        $validated = $request->validate([
+            'hobby_id' => 'required|exists:hobbies,id',
+            'goal' => 'required|string|max:255',
+            'deadline' => 'required|date|after:today',
+        ]);
+
+        $goal->update($validated);
+
+        return redirect()->route('goals.index')
+            ->with('success', 'Goal updated successfully!')
+            ->with('activeTab', 'my-goals');
+    }
+
+    public function updateMilestone(Request $request, Goal $goal, $milestoneId)
+    {
+        // Authorize the action
+        $this->authorize('manage', $goal);
+
+        $validated = $request->validate([
+            'description' => 'required|string|max:255',
+            'due_date' => [
+                'required',
+                'date',
+                'after_or_equal:today',
+                function ($attribute, $value, $fail) use ($goal) {
+                    if (strtotime($value) > strtotime($goal->deadline)) {
+                        $fail('Milestone date cannot be later than the goal deadline.');
+                    }
+                },
+            ],
+        ]);
+
+        $milestone = $goal->milestones()->findOrFail($milestoneId);
+        $milestone->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Milestone updated successfully'
+        ]);
+    }
+
+    public function deleteMilestone(Goal $goal, $milestoneId)
+    {
+        try {
+            DB::beginTransaction();
+            
+            $milestone = $goal->milestones()->findOrFail($milestoneId);
+            $milestone->delete();
+
+            // Recalculate goal progress
+            $totalMilestones = $goal->milestones()->count();
+            $completedMilestones = $goal->milestones()->where('completed', true)->count();
+            
+            // Calculate new progress
+            $progress = $totalMilestones > 0 ? round(($completedMilestones / $totalMilestones) * 100) : 0;
+            
+            // Update goal progress and status
+            $goal->update([
+                'progress' => $progress,
+                'status' => $progress == 100 ? 'completed' : 'in-progress'
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'progress' => $progress,
+                'status' => $goal->status
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete milestone'
+            ], 500);
+        }
+    }
+}

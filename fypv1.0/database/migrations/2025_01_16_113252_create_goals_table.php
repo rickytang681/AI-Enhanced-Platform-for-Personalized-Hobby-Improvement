@@ -11,13 +11,14 @@ class CreateGoalsTable extends Migration
         Schema::create('goals', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->json('hobbies'); // Changed to JSON to store multiple hobbies with experience
+            $table->foreignId('hobby_id')->constrained()->onDelete('cascade');
             $table->string('goal');
             $table->integer('progress')->default(0);
-            $table->string('status')->default('in-progress'); // e.g., 'in-progress', 'completed'
+            $table->string('status')->default('in-progress');
             $table->date('deadline')->nullable();
-            $table->text('notes')->nullable(); // Added notes field
+            $table->text('notes')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

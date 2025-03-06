@@ -4,14 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Goal extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id',
-        'hobbies',
+        'hobby_id',
         'goal',
         'progress',
         'status',
@@ -20,23 +21,31 @@ class Goal extends Model
     ];
 
     protected $casts = [
-        'hobbies' => 'array',
-        'deadline' => 'date'
+        'deadline' => 'date',
+        'progress' => 'integer',
+        'status' => 'string'
     ];
 
-    // Relationship with User
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function($goal) {
+            // This will respect soft deletes
+            $goal->milestones()->delete();
+        });
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    // Relationship with Hobby
     public function hobby()
     {
         return $this->belongsTo(Hobby::class);
     }
 
-    // Relationship with Milestones
     public function milestones()
     {
         return $this->hasMany(Milestone::class);
