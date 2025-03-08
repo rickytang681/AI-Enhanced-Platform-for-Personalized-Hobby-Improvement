@@ -53,10 +53,10 @@ class GoalSeeder extends Seeder
         ];
 
         foreach ($users as $user) {
-            // Get existing hobbies for the user
-            $hobbies = $user->hobbies;
+            // Get existing hobbies for the user with eager loading
+            $hobbies = $user->hobbies()->get();
             
-            if ($hobbies->isNotEmpty()) {
+            if ($hobbies && $hobbies->count() > 0) {
                 // Create 1-2 goals for each hobby
                 foreach ($hobbies as $hobby) {
                     $numberOfGoals = rand(1, 2);

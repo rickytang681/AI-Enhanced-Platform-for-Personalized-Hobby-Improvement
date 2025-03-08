@@ -4,55 +4,49 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, Notifiable;
+    use Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
-        'id',
         'name',
         'email',
-        'phone',
         'password',
-        'hobbies',
-        'experience',
-        'role',
-        'profile_picture',
+        'role'
     ];
-    
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
-
-    public function isAdmin()
+    public function hobbies()
     {
-        return $this->role === 'admin';
+        return $this->hasMany(Hobby::class);
     }
 
-    public function communities()
+    public function libraryComments()
+    {
+        return $this->hasMany(LibraryComment::class);
+    }
+
+    public function libraryReactions()
+    {
+        return $this->hasMany(LibraryReaction::class);
+    }
+
+    public function libraryRatings()
+    {
+        return $this->hasMany(LibraryRating::class);
+    }
+
+    public function librarySaves()
+    {
+        return $this->hasMany(LibrarySave::class);
+    }
+
+    public function communityPosts()
     {
         return $this->hasMany(Community::class);
     }
@@ -67,22 +61,8 @@ class User extends Authenticatable
         return $this->hasMany(CommunityReaction::class);
     }
 
-    public function communityRatings()
+    public function communitySavedPosts()
     {
-        return $this->hasMany(CommunityRating::class);
-    }
-
-    public function savedCommunities()
-    {
-        return $this->belongsToMany(Community::class, 'community_saved_posts')
-            ->withTimestamps();
-    }
-
-    /**
-     * Get the hobbies for the user.
-     */
-    public function hobbies()
-    {
-        return $this->hasMany(Hobby::class);
+        return $this->belongsToMany(Community::class, 'community_saved_posts');
     }
 }

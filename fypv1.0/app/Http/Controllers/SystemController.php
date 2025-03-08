@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Http\Request;
 use App\Models\LibraryItem;
 use App\Models\LibraryComment;
 use App\Models\Community;
@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class SystemController extends Controller
 {
@@ -75,21 +77,68 @@ class SystemController extends Controller
         }
     }
 
-    public function deleteUser(User $user)
+    public function deleteUser($id)
     {
-        if ($user->id === auth()->id()) {
+        try {
+            $user = User::findOrFail($id);
+
+            if ($user->id === auth()->id()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot delete your own account'
+                ], 403);
+            }
+
+            DB::beginTransaction();
+            try {
+                // Delete user's hobbies and related data
+                $hobbies = $user->hobbies()->get();
+                foreach ($hobbies as $hobby) {
+                    // Delete goals and milestones
+                    $goals = $hobby->goals()->get();
+                    foreach ($goals as $goal) {
+                        $goal->milestones()->delete();
+                        $goal->delete();
+                    }
+                    $hobby->delete();
+                }
+
+                // Delete library interactions
+                $user->libraryComments()->delete();
+                $user->libraryReactions()->delete();
+                $user->libraryRatings()->delete();
+                $user->librarySaves()->delete();
+
+                // Delete community interactions
+                $user->communityPosts()->delete();
+                $user->communityComments()->delete();
+                $user->communityReactions()->delete();
+                
+                // Delete community saved posts
+                $user->communitySavedPosts()->detach();
+
+                // Finally, delete the user
+                $user->delete();
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'User and all related data deleted successfully'
+                ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Error deleting user: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Cannot delete your own account'
-            ], 403);
+                'message' => 'Error deleting user: ' . $e->getMessage()
+            ], 500);
         }
-
-        $user->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'User deleted successfully'
-        ]);
     }
 
     public function deleteResource(LibraryItem $resource)

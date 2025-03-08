@@ -240,7 +240,7 @@
                                         </div>
                                     </div>
                                     <small class="text-muted">
-                                        Posted by {{ $item->user->name }} {{ $item->created_at->diffForHumans() }}
+                                        Posted by {{ $item->user ? $item->user->name : 'Deleted User' }} {{ $item->created_at->diffForHumans() }}
                                     </small>
                                 </div>
 
@@ -270,7 +270,7 @@
                                                          height="30" 
                                                          alt="Profile">
                                                     <div class="ms-2">
-                                                        <strong>{{ $comment->user->name }}</strong>
+                                                        <strong>{{ $comment->user ? $comment->user->name : 'Deleted User' }}</strong>
                                                         <small class="text-muted ms-2">{{ $comment->created_at->diffForHumans() }}</small>
                                                     </div>
                                                 </div>

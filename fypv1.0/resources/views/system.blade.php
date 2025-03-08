@@ -139,8 +139,8 @@
                         @foreach($libraryComments as $comment)
                         <tr>
                             <td>{{ $comment->id }}</td>
-                            <td>{{ $comment->user->name }}</td>
-                            <td>{{ $comment->libraryItem->title }}</td>
+                            <td>{{ $comment->user ? $comment->user->name : 'Deleted User' }}</td>
+                            <td>{{ $comment->libraryItem ? $comment->libraryItem->title : 'Deleted Item' }}</td>
                             <td>{{ Str::limit($comment->content, 50) }}</td>
                             <td>{{ $comment->created_at->format('Y-m-d H:i') }}</td>
                             <td>
@@ -178,7 +178,7 @@
                         @foreach($communityPosts as $post)
                         <tr>
                             <td>{{ $post->id }}</td>
-                            <td>{{ $post->user->name }}</td>
+                            <td>{{ $post->user ? $post->user->name : 'Deleted User' }}</td>
                             <td>{{ Str::limit($post->title, 30) }}</td>
                             <td>{{ $post->post_type }}</td>
                             <td>{{ $post->tag }}</td>
@@ -217,8 +217,8 @@
                         @foreach($communityComments as $comment)
                         <tr>
                             <td>{{ $comment->id }}</td>
-                            <td>{{ $comment->user->name }}</td>
-                            <td>{{ Str::limit($comment->community->title, 30) }}</td>
+                            <td>{{ $comment->user ? $comment->user->name : 'Deleted User' }}</td>
+                            <td>{{ $comment->community ? Str::limit($comment->community->title, 30) : 'Deleted Post' }}</td>
                             <td>{{ Str::limit($comment->content, 50) }}</td>
                             <td>{{ $comment->created_at->format('Y-m-d H:i') }}</td>
                             <td>
@@ -394,7 +394,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(`/system/users/${userToDelete}`, {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
                 }
             });
 
@@ -403,13 +405,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 location.reload();
             } else {
-                alert('Error deleting user: ' + data.message);
+                alert('Error deactivating user: ' + data.message);
             }
         } catch (error) {
-            alert('Error deleting user');
+            console.error('Error:', error);
+            alert('Error deactivating user. Please try again.');
+        } finally {
+            deleteModal.hide();
         }
-        
-        deleteModal.hide();
     });
 
     // Resource Delete Handling
