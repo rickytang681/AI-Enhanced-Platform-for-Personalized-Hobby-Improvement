@@ -65,4 +65,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Community::class, 'community_saved_posts');
     }
+
+    public function recommendations()
+    {
+        return $this->hasMany(Recommendation::class);
+    }
 }
