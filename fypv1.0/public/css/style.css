@@ -969,3 +969,101 @@ footer a:hover {
     color: #0056b3;
     text-decoration: underline;
 }
+
+/* Recommendation Styles */
+.recommendations-container {
+    background-color: #fff;
+    border-radius: 8px;
+}
+
+.recommendation-section {
+    padding: 20px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.recommendation-number {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #6c757d;
+    margin-bottom: 10px;
+}
+
+.recommendation-title {
+    color: #0d6efd;
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    color: #495057;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.action-steps-section,
+.time-commitment-section,
+.resources-section,
+.outcome-section {
+    margin: 15px 0;
+    padding: 15px;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+}
+
+.action-steps-list,
+.resources-list {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+.action-steps-list li,
+.resources-list li {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.action-steps-list li:last-child,
+.resources-list li:last-child {
+    margin-bottom: 0;
+}
+
+.action-steps-list i,
+.resources-list i,
+.time-commitment-section i,
+.outcome-section i {
+    margin-right: 10px;
+    color: #0d6efd;
+}
+
+.time-commitment-section p,
+.outcome-section p {
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* Different colors for different sections */
+.action-steps-section {
+    border-left: 4px solid #28a745;
+}
+
+.time-commitment-section {
+    border-left: 4px solid #17a2b8;
+}
+
+.resources-section {
+    border-left: 4px solid #ffc107;
+}
+
+.outcome-section {
+    border-left: 4px solid #6f42c1;
+}

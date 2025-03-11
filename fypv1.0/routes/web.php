@@ -99,7 +99,7 @@ Route::middleware(['auth'])->group(function () {
     // Recommendations
     Route::get('/recommendation', [RecommendationController::class, 'index'])->name('recommendation');
     Route::post('/recommendation/get', [RecommendationController::class, 'getRecommendations'])->name('recommendation.get');
-    Route::delete('/recommendation/{id}', [RecommendationController::class, 'destroy'])->name('recommendation.destroy');
+    Route::delete('/recommendations/{recommendation}', [RecommendationController::class, 'destroy'])->name('recommendations.destroy');
 
     // Admin Routes
     Route::middleware(['auth', 'admin'])->group(function () {

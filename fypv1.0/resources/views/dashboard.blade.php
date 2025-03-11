@@ -1,5 +1,28 @@
 @extends('layouts.logoutHeader')
 
+@section('styles')
+<style>
+    .accordion-button:not(.collapsed) {
+        background-color: #f8f9fa;
+        color: #0d6efd;
+    }
+    .accordion-button:focus {
+        box-shadow: none;
+        border-color: rgba(0,0,0,.125);
+    }
+    .progress {
+        background-color: #e9ecef;
+    }
+    .card {
+        border: 1px solid rgba(0,0,0,.125);
+    }
+    .milestone-completed {
+        text-decoration: line-through;
+        color: #6c757d;
+    }
+</style>
+@endsection
+
 @section('content')
 <div class="container mt-4">
     <div class="row g-4">
@@ -18,16 +41,79 @@
                             @if($hobbies->isEmpty())
                                 <p class="text-muted">No hobbies added yet</p>
                             @else
-                                <ul class="list-unstyled">
-                                    @foreach($hobbies->take(3) as $hobby)
-                                        <li class="mb-2">
-                                            <strong>{{ $hobby->name }}</strong>
-                                            <div class="small text-muted">
-                                                Goals: {{ $hobby->completed_goals_count }}/{{ $hobby->goals_count }}
+                                <div class="accordion" id="hobbiesAccordion">
+                                    @foreach($hobbies as $hobby)
+                                        <div class="accordion-item mb-2">
+                                            <h2 class="accordion-header" id="hobby-{{ $hobby->id }}-header">
+                                                <button class="accordion-button collapsed" type="button" 
+                                                        data-bs-toggle="collapse" 
+                                                        data-bs-target="#hobby-{{ $hobby->id }}-content">
+                                                    <div class="d-flex justify-content-between align-items-center w-100">
+                                                        <strong>{{ $hobby->name }}</strong>
+                                                        <span class="badge bg-primary ms-2">
+                                                            {{ $hobby->completed_goals_count }}/{{ $hobby->goals_count }} Goals
+                                                        </span>
+                                                    </div>
+                                                </button>
+                                            </h2>
+                                            <div id="hobby-{{ $hobby->id }}-content" 
+                                                 class="accordion-collapse collapse" 
+                                                 aria-labelledby="hobby-{{ $hobby->id }}-header" 
+                                                 data-bs-parent="#hobbiesAccordion">
+                                                <div class="accordion-body">
+                                                    @if($hobby->goals->isEmpty())
+                                                        <p class="text-muted small">No goals set for this hobby yet</p>
+                                                    @else
+                                                        @foreach($hobby->goals->take(2) as $goal)
+                                                            <div class="card mb-2">
+                                                                <div class="card-body p-3">
+                                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                        <h6 class="card-title mb-0">{{ $goal->goal }}</h6>
+                                                                        <span class="badge {{ $goal->status === 'completed' ? 'bg-success' : 'bg-primary' }}">
+                                                                            {{ ucfirst($goal->status) }}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div class="progress mb-2" style="height: 10px;">
+                                                                        <div class="progress-bar {{ $goal->progress == 100 ? 'bg-success' : '' }}" 
+                                                                             role="progressbar" 
+                                                                             style="width: {{ $goal->progress }}%" 
+                                                                             aria-valuenow="{{ $goal->progress }}" 
+                                                                             aria-valuemin="0" 
+                                                                             aria-valuemax="100">
+                                                                        </div>
+                                                                    </div>
+                                                                    @if($goal->milestones->isNotEmpty())
+                                                                        <div class="milestones mt-2">
+                                                                            <small class="text-muted d-block mb-1">Key Milestones:</small>
+                                                                            @foreach($goal->milestones->take(2) as $milestone)
+                                                                                <div class="d-flex align-items-center small mb-1">
+                                                                                    <i class="bi {{ $milestone->completed ? 'bi-check-circle-fill text-success' : 'bi-circle' }} me-2"></i>
+                                                                                    <span class="{{ $milestone->completed ? 'text-decoration-line-through' : '' }}">
+                                                                                        {{ Str::limit($milestone->description, 30) }}
+                                                                                    </span>
+                                                                                </div>
+                                                                            @endforeach
+                                                                            @if($goal->milestones->count() > 2)
+                                                                                <small class="text-muted">+ {{ $goal->milestones->count() - 2 }} more milestones</small>
+                                                                            @endif
+                                                                        </div>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+                                                        @if($hobby->goals->count() > 2)
+                                                            <div class="text-center mt-2">
+                                                                <a href="{{ route('goals.index') }}" class="btn btn-sm btn-outline-primary">
+                                                                    View All Goals ({{ $hobby->goals->count() }})
+                                                                </a>
+                                                            </div>
+                                                        @endif
+                                                    @endif
+                                                </div>
                                             </div>
-                                        </li>
+                                        </div>
                                     @endforeach
-                                </ul>
+                                </div>
                             @endif
                         </div>
 

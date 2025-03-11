@@ -6,7 +6,7 @@
         <!-- Left Section -->
         <div class="col-md-6">
             <div class="card p-4 text-center">
-                <img src="{{ asset('images/banner.jpg') }}" alt="Banner" class="img-fluid rounded mb-4">
+                <img src="{{ asset('storage/banner/hobby-improvement-banner.jpg') }}" alt="Banner" class="img-fluid rounded mb-4">
                 <h2 class="brand-text mb-3">Welcome to Hobby Improvement</h2>
                 <p class="lead mb-4">
                     Your personal AI-enhanced platform for hobby improvement. 

@@ -34,7 +34,25 @@ class RecommendationController extends Controller
     {
         try {
             $user = auth()->user();
-            $hobbies = $user->hobbies()->with(['goals'])->get();
+            
+            // Validate request
+            $validated = $request->validate([
+                'selected_hobbies' => 'required|array',
+                'selected_hobbies.*' => 'exists:hobbies,id',
+                'selected_goals' => 'array',
+                'selected_goals.*' => 'exists:goals,id'
+            ]);
+
+            // Get selected hobbies with their goals and milestones
+            $hobbies = $user->hobbies()
+                ->whereIn('id', $validated['selected_hobbies'])
+                ->with(['goals' => function($query) use ($validated) {
+                    if (!empty($validated['selected_goals'])) {
+                        $query->whereIn('id', $validated['selected_goals']);
+                    }
+                    $query->with('milestones');
+                }])
+                ->get();
 
             if ($hobbies->isEmpty()) {
                 return response()->json([
@@ -44,16 +62,50 @@ class RecommendationController extends Controller
             }
 
             // Prepare the context for AI
-            $context = "User's hobbies and goals:\n";
+            $context = "User's selected hobbies and goals:\n\n";
             foreach ($hobbies as $hobby) {
-                $context .= "Hobby: {$hobby->name}\n";
-                $context .= "Goals:\n";
-                foreach ($hobby->goals as $goal) {
-                    $context .= "- {$goal->title} (Status: {$goal->status})\n";
+                $context .= "Hobby: {$hobby->name} (Level: {$hobby->experience_level})\n";
+                if ($hobby->goals->isNotEmpty()) {
+                    $context .= "Goals:\n";
+                    foreach ($hobby->goals as $goal) {
+                        $context .= "- Goal: {$goal->title} (Status: {$goal->status})\n";
+                        
+                        // Add milestones information
+                        if ($goal->milestones->isNotEmpty()) {
+                            $context .= "  Milestones:\n";
+                            foreach ($goal->milestones as $milestone) {
+                                $context .= "  * {$milestone->description} " . 
+                                          "(Due: {$milestone->due_date}, " .
+                                          "Status: " . ($milestone->completed ? "Completed" : "Pending") . ")\n";
+                            }
+                        }
+                    }
+                    $context .= "\n";
                 }
             }
 
-            $prompt = "Based on these hobbies and goals, provide personalized recommendations for improvement and next steps. Please provide specific, actionable recommendations that will help the user progress in their hobbies and achieve their goals. Format the response in clear, numbered points:\n" . $context;
+            $prompt = "You are a professional hobby improvement coach. Based on the user's selected hobbies, goals, and milestones, provide personalized, actionable recommendations for improvement. Follow these guidelines:\n\n" .
+                     "1. **Context**:\n" . $context . "\n\n" .
+                     "2. **Recommendation Requirements**:\n" .
+                     "- Each recommendation should be specific, actionable, and tailored to the user's current progress.\n" .
+                     "- Include the following details for each recommendation:\n" .
+                     "  * **Title**: A short, descriptive title.\n" .
+                     "  * **Action Steps**: Clear steps to achieve the recommendation.\n" .
+                     "  * **Time Commitment**: Estimated time required (e.g., 30 minutes/day).\n" .
+                     "  * **Resources**: Suggested tools, books, or online resources (if applicable).\n" .
+                     "  * **Expected Outcome**: What the user can expect to achieve.\n\n" .
+                     "3. **Focus Areas**:\n" .
+                     "- **Progress on Incomplete Milestones**: Provide steps to complete pending milestones.\n" .
+                     "- **New Milestones**: Suggest new milestones if the current ones are too easy or outdated.\n" .
+                     "- **Motivation & Consistency**: Offer tips to stay motivated and consistent.\n" .
+                     "- **Skill Development**: Recommend techniques or resources to improve specific skills.\n\n" .
+                     "4. **Tone & Style**:\n" .
+                     "- Use a friendly and encouraging tone.\n" .
+                     "- Keep the language simple and easy to understand.\n\n" .
+                     "5. **Output Format**:\n" .
+                     "- Provide the recommendations in a numbered list.\n" .
+                     "- Each recommendation should follow the structure above.\n\n" .
+                     "Now, generate the recommendations based on the provided context. At The first need showing the hobby, goals, milestone, and exexperience_level of user. And remove ** and bolding the important sentence";
 
             $client = new Client([
                 'verify' => false,
@@ -88,7 +140,7 @@ class RecommendationController extends Controller
             \Log::info('API Response:', ['result' => $result]);
 
             if (isset($result['result']) && $result['status'] === true) {
-                // Save the recommendation
+                // Save the raw recommendation content
                 $recommendation = Recommendation::create([
                     'user_id' => $user->id,
                     'content' => $result['result']

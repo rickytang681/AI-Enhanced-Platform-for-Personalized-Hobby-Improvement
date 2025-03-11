@@ -19,10 +19,14 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         
-        // Get user's hobbies with their goals
+        // Get user's hobbies with their goals and milestones
         $hobbies = $user->hobbies()
             ->withCount(['goals', 'goals as completed_goals_count' => function ($query) {
                 $query->where('status', 'completed');
+            }])
+            ->with(['goals' => function ($query) {
+                $query->with('milestones')
+                      ->orderBy('created_at', 'desc');
             }])
             ->get();
 
@@ -31,7 +35,7 @@ class DashboardController extends Controller
             ->take(3)
             ->get();
 
-        // Get recent library resources (changed from popular to recent)
+        // Get recent library resources
         $popularResources = LibraryItem::latest()
             ->take(3)
             ->get();
