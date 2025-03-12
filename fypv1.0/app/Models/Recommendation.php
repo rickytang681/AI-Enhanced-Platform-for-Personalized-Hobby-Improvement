@@ -12,4 +12,14 @@ class Recommendation extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function hobby()
+    {
+        return $this->belongsTo(Hobby::class);
+    }
+
+    public function goal()
+    {
+        return $this->belongsTo(Goal::class);
+    }
 }

@@ -9,102 +9,53 @@
                 
                 <!-- Hobby and Goal Selection Form -->
                 <div class="mb-4">
-                    <h5>Select Hobbies & Goals</h5>
+                    <h5>Select Hobby & Goal</h5>
                     <form id="recommendationForm" class="mb-3">
                         @csrf
                         <div class="mb-3">
-                            <label class="form-label">Select Hobbies</label>
-                            <div class="hobby-selection">
+                            <label class="form-label">Select Hobby</label>
+                            <select class="form-select" id="hobbySelect" name="selected_hobby" required>
+                                <option value="">Choose a hobby...</option>
                                 @foreach($hobbies as $hobby)
-                                    <div class="card mb-2">
-                                        <div class="card-body">
-                                            <div class="form-check">
-                                                <input class="form-check-input hobby-checkbox" 
-                                                       type="checkbox" 
-                                                       value="{{ $hobby->id }}" 
-                                                       id="hobby-{{ $hobby->id }}"
-                                                       name="selected_hobbies[]">
-                                                <label class="form-check-label" for="hobby-{{ $hobby->id }}">
-                                                    {{ $hobby->name }} ({{ $hobby->experience_level }})
-                                                </label>
-                                            </div>
-                                            
-                                            @if($hobby->goals->isNotEmpty())
-                                                <div class="ms-4 mt-2 goals-container" id="goals-{{ $hobby->id }}" style="display: none;">
-                                                    <label class="form-label">Select Goals:</label>
-                                                    @foreach($hobby->goals as $goal)
-                                                        <div class="form-check">
-                                                            <input class="form-check-input goal-checkbox" 
-                                                                   type="checkbox" 
-                                                                   value="{{ $goal->id }}" 
-                                                                   id="goal-{{ $goal->id }}"
-                                                                   name="selected_goals[]"
-                                                                   data-hobby="{{ $hobby->id }}">
-                                                            <label class="form-check-label" for="goal-{{ $goal->id }}">
-                                                                {{ $goal->title }}
-                                                                <span class="badge {{ $goal->status === 'completed' ? 'bg-success' : 'bg-primary' }}">
-                                                                    {{ ucfirst($goal->status) }}
-                                                                </span>
-                                                            </label>
-                                                            
-                                                            <!-- Goal Details Section -->
-                                                            <div class="goal-details ms-4 mt-2">
-                                                                <div class="progress mb-2" style="height: 10px;">
-                                                                    <div class="progress-bar {{ $goal->progress == 100 ? 'bg-success' : 'bg-primary' }}" 
-                                                                         role="progressbar" 
-                                                                         style="width: {{ $goal->progress }}%" 
-                                                                         aria-valuenow="{{ $goal->progress }}" 
-                                                                         aria-valuemin="0" 
-                                                                         aria-valuemax="100">
-                                                                        {{ $goal->progress }}%
-                                                                    </div>
-                                                                </div>
-                                                                
-                                                                @if($goal->milestones->isNotEmpty())
-                                                                    <div class="milestones-list small">
-                                                                        <strong>Milestones:</strong>
-                                                                        <ul class="list-unstyled mb-0">
-                                                                            @foreach($goal->milestones as $milestone)
-                                                                                <li class="ms-2">
-                                                                                    <i class="bi {{ $milestone->completed ? 'bi-check-circle-fill text-success' : 'bi-circle' }} me-1"></i>
-                                                                                    <span class="{{ $milestone->completed ? 'text-decoration-line-through' : '' }}">
-                                                                                        {{ $milestone->description }}
-                                                                                    </span>
-                                                                                    <small class="text-muted">(Due: {{ $milestone->due_date->format('M d, Y') }})</small>
-                                                                                </li>
-                                                                            @endforeach
-                                                                        </ul>
-                                                                    </div>
-                                                                @endif
-                                                            </div>
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
+                                    <option value="{{ $hobby->id }}">{{ $hobby->name }} ({{ $hobby->experience_level }})</option>
                                 @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Select Goal</label>
+                            <select class="form-select" id="goalSelect" name="selected_goal" required disabled>
+                                <option value="">Choose a goal...</option>
+                            </select>
+
+                            <!-- Milestones Display -->
+                            <div id="milestonesContainer" class="mt-3" style="display: none;">
+                                <label class="form-label">Goal Milestones:</label>
+                                <ul class="list-group" id="milestonesList">
+                                </ul>
                             </div>
                         </div>
-                        
-                        <button type="button" id="getRecommendations" class="btn btn-primary w-100">
-                            <i class="bi bi-lightbulb"></i> Get Recommendations
-                        </button>
+
+                        <div class="text-center">
+                            <button type="button" id="getRecommendations" class="btn btn-primary">
+                                Get Recommendations
+                            </button>
+                        </div>
                     </form>
                 </div>
 
-                <!-- Previous Recommendations Section -->
-                <div class="previous-recommendations-header">
-                    <div class="d-flex align-items-center mb-4">
-                        <div class="recommendation-icon me-3">
-                            <i class="bi bi-clock-history"></i>
-                        </div>
-                        <div>
-                            <h5 class="mb-0">Previous Recommendations</h5>
-                            <small class="text-muted">Your personalized improvement suggestions</small>
-                        </div>
+                <!-- Loading Spinner -->
+                <div id="loadingSpinner" class="text-center d-none">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
                     </div>
+                    <p class="mt-2">Generating personalized recommendations...</p>
                 </div>
+
+                <!-- Recommendations Display -->
+                <div id="recommendationsContainer"></div>
+
+                <!-- Previous Recommendations Section -->
                 <div id="savedRecommendations">
                     @foreach($recommendations as $recommendation)
                         <div class="card mb-3 recommendation-card" data-id="{{ $recommendation->id }}">
@@ -122,14 +73,6 @@
                         </div>
                     @endforeach
                 </div>
-
-                <!-- Loading Spinner -->
-                <div id="loadingSpinner" class="text-center d-none">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2">Generating personalized recommendations...</p>
-                </div>
             </div>
         </div>
     </div>
@@ -139,30 +82,85 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Toggle goals when hobby is selected
-    document.querySelectorAll('.hobby-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const goalsContainer = document.getElementById(`goals-${this.value}`);
-            if (goalsContainer) {
-                goalsContainer.style.display = this.checked ? 'block' : 'none';
-                
-                // Uncheck all goals when hobby is unselected
-                if (!this.checked) {
-                    goalsContainer.querySelectorAll('.goal-checkbox').forEach(goalCheckbox => {
-                        goalCheckbox.checked = false;
-                    });
+    const hobbySelect = document.getElementById('hobbySelect');
+    const goalSelect = document.getElementById('goalSelect');
+    const milestonesContainer = document.getElementById('milestonesContainer');
+    const milestonesList = document.getElementById('milestonesList');
+
+    // Handle hobby selection
+    hobbySelect.addEventListener('change', async function() {
+        goalSelect.disabled = true;
+        goalSelect.innerHTML = '<option value="">Choose a goal...</option>';
+        milestonesContainer.style.display = 'none';
+        
+        if (this.value) {
+            try {
+                const response = await fetch(`/api/hobbies/${this.value}/goals`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch goals');
                 }
+                const goals = await response.json();
+                
+                if (goals && goals.length > 0) {
+                    goals.forEach(goal => {
+                        // Updated to use 'goal' instead of 'title' to match your model
+                        const option = new Option(goal.goal, goal.id);
+                        goalSelect.add(option);
+                    });
+                    goalSelect.disabled = false;
+                } else {
+                    goalSelect.innerHTML = '<option value="">No goals available</option>';
+                }
+            } catch (error) {
+                console.error('Error fetching goals:', error);
+                alert('Error loading goals');
             }
-        });
+        }
+    });
+
+    // Handle goal selection
+    goalSelect.addEventListener('change', async function() {
+        milestonesContainer.style.display = 'none';
+        milestonesList.innerHTML = '';
+        
+        if (this.value) {
+            try {
+                const response = await fetch(`/api/goals/${this.value}/milestones`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch milestones');
+                }
+                const goal = await response.json();
+                
+                if (goal.milestones && goal.milestones.length > 0) {
+                    goal.milestones.forEach(milestone => {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item';
+                        li.innerHTML = `
+                            <i class="bi ${milestone.completed ? 'bi-check-circle-fill text-success' : 'bi-circle'} me-2"></i>
+                            <span class="${milestone.completed ? 'text-decoration-line-through' : ''}">
+                                ${milestone.description}
+                            </span>
+                            <small class="text-muted d-block ms-4">Due: ${milestone.due_date}</small>
+                        `;
+                        milestonesList.appendChild(li);
+                    });
+                    milestonesContainer.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error fetching milestones:', error);
+                alert('Error loading milestones');
+            }
+        }
     });
 
     // Handle recommendation request
     document.getElementById('getRecommendations').addEventListener('click', async function() {
-        const selectedHobbies = Array.from(document.querySelectorAll('.hobby-checkbox:checked')).map(cb => cb.value);
-        const selectedGoals = Array.from(document.querySelectorAll('.goal-checkbox:checked')).map(cb => cb.value);
-
-        if (selectedHobbies.length === 0) {
-            alert('Please select at least one hobby');
+        if (!hobbySelect.value) {
+            alert('Please select a hobby');
+            return;
+        }
+        if (!goalSelect.value) {
+            alert('Please select a goal');
             return;
         }
 
@@ -179,15 +177,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    selected_hobbies: selectedHobbies,
-                    selected_goals: selectedGoals
+                    selected_hobbies: [hobbySelect.value],
+                    selected_goals: [goalSelect.value]
                 })
             });
 
             const data = await response.json();
 
             if (data.success) {
-                // Create new recommendation card
                 const newCard = document.createElement('div');
                 newCard.className = 'card mb-3 recommendation-card';
                 newCard.dataset.id = data.recommendation_id;
@@ -200,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </button>
                         </div>
                         <div class="recommendation-content">
-                            ${data.recommendations.replace(/\n/g, '<br>')}
+                            ${data.recommendations}
                         </div>
                     </div>
                 `;
@@ -208,11 +205,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const savedRecommendations = document.getElementById('savedRecommendations');
                 savedRecommendations.insertBefore(newCard, savedRecommendations.firstChild);
             } else {
-                alert(data.error || 'Failed to get recommendations');
+                alert('Failed to generate recommendations');
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error getting recommendations');
+            alert('Error generating recommendations');
         } finally {
             loadingSpinner.classList.add('d-none');
             this.disabled = false;

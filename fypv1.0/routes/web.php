@@ -124,3 +124,32 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('hobbies', HobbyController::class)->middleware('auth');
 });
 
+// Add these routes for fetching goals and milestones
+Route::get('/api/hobbies/{hobby}/goals', function ($hobby) {
+    $hobby = App\Models\Hobby::findOrFail($hobby);
+    return response()->json($hobby->goals->map(function ($goal) {
+        return [
+            'id' => $goal->id,
+            'goal' => $goal->goal, // Using 'goal' property instead of 'title'
+            'status' => $goal->status,
+            'progress' => $goal->progress
+        ];
+    }));
+});
+
+Route::get('/api/goals/{goal}/milestones', function ($goal) {
+    $goal = App\Models\Goal::with('milestones')->findOrFail($goal);
+    return response()->json([
+        'id' => $goal->id,
+        'goal' => $goal->goal, // Using 'goal' property instead of 'title'
+        'milestones' => $goal->milestones->map(function ($milestone) {
+            return [
+                'id' => $milestone->id,
+                'description' => $milestone->description,
+                'due_date' => $milestone->due_date,
+                'completed' => $milestone->completed
+            ];
+        })
+    ]);
+});
+

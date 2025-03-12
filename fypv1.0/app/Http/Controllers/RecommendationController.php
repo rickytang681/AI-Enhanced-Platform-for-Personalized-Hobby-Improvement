@@ -37,9 +37,9 @@ class RecommendationController extends Controller
             
             // Validate request
             $validated = $request->validate([
-                'selected_hobbies' => 'required|array',
+                'selected_hobbies' => 'required|array|size:1',
                 'selected_hobbies.*' => 'exists:hobbies,id',
-                'selected_goals' => 'array',
+                'selected_goals' => 'required|array|size:1',
                 'selected_goals.*' => 'exists:goals,id'
             ]);
 
