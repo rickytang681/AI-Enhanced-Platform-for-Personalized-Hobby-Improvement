@@ -33,10 +33,21 @@
                     <h4 class="card-title mb-4">Overview</h4>
                     <div class="row g-4">
                         <!-- Hobbies & Goals Section -->
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <div class="d-flex align-items-center mb-3">
                                 <span class="fs-5 me-2">🎯</span>
                                 <h5 class="mb-0">Your Hobbies</h5>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <a href="{{ route('hobbies.index') }}" class="btn btn-outline-primary btn-sm">
+                                    ➕ Create a new hobby
+                                </a>
+                                <a href="{{ route('goals.index') }}" class="btn btn-outline-success btn-sm">
+                                    🎯 Set a goal
+                                </a>
+                                <a href="{{ route('recommendation') }}" class="btn btn-outline-info btn-sm">
+                                    💡 Get AI recommendations
+                                </a>
                             </div>
                             @if($hobbies->isEmpty())
                                 <p class="text-muted">No hobbies added yet</p>
@@ -115,25 +126,6 @@
                                     @endforeach
                                 </div>
                             @endif
-                        </div>
-
-                        <!-- Quick Links Section -->
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center mb-3">
-                                <span class="fs-5 me-2">✅</span>
-                                <h5 class="mb-0">Quick Actions</h5>
-                            </div>
-                            <div class="d-grid gap-2">
-                                <a href="{{ route('hobbies.index') }}" class="btn btn-outline-primary btn-sm">
-                                    ➕ Create a new hobby
-                                </a>
-                                <a href="{{ route('goals.index') }}" class="btn btn-outline-success btn-sm">
-                                    🎯 Set a goal
-                                </a>
-                                <a href="{{ route('recommendation') }}" class="btn btn-outline-info btn-sm">
-                                    💡 Get AI recommendations
-                                </a>
-                            </div>
                         </div>
                     </div>
                 </div>
