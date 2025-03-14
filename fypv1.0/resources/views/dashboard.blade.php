@@ -1,160 +1,164 @@
 @extends('layouts.logoutHeader')
 
-@section('styles')
-<style>
-    .accordion-button:not(.collapsed) {
-        background-color: #f8f9fa;
-        color: #0d6efd;
-    }
-    .accordion-button:focus {
-        box-shadow: none;
-        border-color: rgba(0,0,0,.125);
-    }
-    .progress {
-        background-color: #e9ecef;
-    }
-    .card {
-        border: 1px solid rgba(0,0,0,.125);
-    }
-    .milestone-completed {
-        text-decoration: line-through;
-        color: #6c757d;
-    }
-</style>
-@endsection
-
 @section('content')
 <div class="container mt-4">
+    <!-- Welcome Banner -->
+    <div class="welcome-banner shadow-sm rounded p-4 mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2 class="mb-2">Welcome back, {{ auth()->user()->name }}! 👋</h2>
+                <p class="text-muted mb-0">Track your hobbies, set goals, and watch your progress grow.</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createHobbyModal">
+                    <i class="bi bi-plus-circle"></i> Add New Hobby
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-trophy text-warning fs-3"></i>
+                    <h3 class="mt-2 mb-1">{{ $hobbies->count() }}</h3>
+                    <p class="text-muted small mb-0">Active Hobbies</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle text-success fs-3"></i>
+                    <h3 class="mt-2 mb-1">{{ $hobbies->sum('completed_goals_count') }}</h3>
+                    <p class="text-muted small mb-0">Goals Completed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-graph-up text-primary fs-3"></i>
+                    <h3 class="mt-2 mb-1">{{ $overallProgress }}%</h3>
+                    <p class="text-muted small mb-0">Overall Progress</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar-check text-info fs-3"></i>
+                    <h3 class="mt-2 mb-1">{{ $hobbies->sum('goals_count') }}</h3>
+                    <p class="text-muted small mb-0">Total Goals</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row g-4">
-        <!-- Overview Card -->
-        <div class="col-12">
-            <div class="card shadow">
+        <!-- Hobbies Section -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">My Hobbies</h5>
+                </div>
                 <div class="card-body">
-                    <h4 class="card-title mb-4">Overview</h4>
-                    <div class="row g-4">
-                        <!-- Hobbies & Goals Section -->
-                        <div class="col-md-12">
-                            <div class="d-flex align-items-center mb-3">
-                                <span class="fs-5 me-2">🎯</span>
-                                <h5 class="mb-0">Your Hobbies</h5>
-                            </div>
-                            <div class="d-grid gap-2">
-                                <a href="{{ route('hobbies.index') }}" class="btn btn-outline-primary btn-sm">
-                                    ➕ Create a new hobby
-                                </a>
-                                <a href="{{ route('goals.index') }}" class="btn btn-outline-success btn-sm">
-                                    🎯 Set a goal
-                                </a>
-                                <a href="{{ route('recommendation') }}" class="btn btn-outline-info btn-sm">
-                                    💡 Get AI recommendations
-                                </a>
-                            </div>
-                            @if($hobbies->isEmpty())
-                                <p class="text-muted">No hobbies added yet</p>
-                            @else
-                                <div class="accordion" id="hobbiesAccordion">
-                                    @foreach($hobbies as $hobby)
-                                        <div class="accordion-item mb-2">
-                                            <h2 class="accordion-header" id="hobby-{{ $hobby->id }}-header">
-                                                <button class="accordion-button collapsed" type="button" 
+                    @if($hobbies->isEmpty())
+                        <div class="text-center py-5">
+                            <i class="bi bi-emoji-smile text-muted fs-1"></i>
+                            <h6 class="mt-3">No hobbies added yet</h6>
+                            <p class="text-muted small">Start by adding your first hobby!</p>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createHobbyModal">
+                                Add Hobby
+                            </button>
+                        </div>
+                    @else
+                        <div class="accordion" id="hobbiesAccordion">
+                            @foreach($hobbies as $hobby)
+                                <div class="accordion-item border-0 mb-3">
+                                    <div class="accordion-header" id="hobby-{{ $hobby->id }}-heading">
+                                        <div class="d-flex justify-content-between align-items-center p-3">
+                                            <div>
+                                                <h6 class="mb-0">{{ $hobby->name }}</h6>
+                                                <span class="badge bg-primary">{{ $hobby->experience_level }}</span>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="btn-group me-3">
+                                                    <button class="btn btn-sm btn-outline-primary" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#editHobbyModal{{ $hobby->id }}">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger delete-hobby-btn" 
+                                                            data-hobby-id="{{ $hobby->id }}">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                                <button class="btn btn-sm btn-link text-decoration-none" 
+                                                        type="button" 
                                                         data-bs-toggle="collapse" 
                                                         data-bs-target="#hobby-{{ $hobby->id }}-content">
-                                                    <div class="d-flex justify-content-between align-items-center w-100">
-                                                        <strong>{{ $hobby->name }}</strong>
-                                                        <span class="badge bg-primary ms-2">
-                                                            {{ $hobby->completed_goals_count }}/{{ $hobby->goals_count }} Goals
-                                                        </span>
-                                                    </div>
+                                                    <i class="bi bi-chevron-down"></i>
                                                 </button>
-                                            </h2>
-                                            <div id="hobby-{{ $hobby->id }}-content" 
-                                                 class="accordion-collapse collapse" 
-                                                 aria-labelledby="hobby-{{ $hobby->id }}-header" 
-                                                 data-bs-parent="#hobbiesAccordion">
-                                                <div class="accordion-body">
-                                                    @if($hobby->goals->isEmpty())
-                                                        <p class="text-muted small">No goals set for this hobby yet</p>
-                                                    @else
-                                                        @foreach($hobby->goals->take(2) as $goal)
-                                                            <div class="card mb-2">
-                                                                <div class="card-body p-3">
-                                                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                                                        <h6 class="card-title mb-0">{{ $goal->goal }}</h6>
-                                                                        <span class="badge {{ $goal->status === 'completed' ? 'bg-success' : 'bg-primary' }}">
-                                                                            {{ ucfirst($goal->status) }}
-                                                                        </span>
-                                                                    </div>
-                                                                    <div class="progress mb-2" style="height: 10px;">
-                                                                        <div class="progress-bar {{ $goal->progress == 100 ? 'bg-success' : '' }}" 
-                                                                             role="progressbar" 
-                                                                             style="width: {{ $goal->progress }}%" 
-                                                                             aria-valuenow="{{ $goal->progress }}" 
-                                                                             aria-valuemin="0" 
-                                                                             aria-valuemax="100">
-                                                                        </div>
-                                                                    </div>
-                                                                    @if($goal->milestones->isNotEmpty())
-                                                                        <div class="milestones mt-2">
-                                                                            <small class="text-muted d-block mb-1">Key Milestones:</small>
-                                                                            @foreach($goal->milestones->take(2) as $milestone)
-                                                                                <div class="d-flex align-items-center small mb-1">
-                                                                                    <i class="bi {{ $milestone->completed ? 'bi-check-circle-fill text-success' : 'bi-circle' }} me-2"></i>
-                                                                                    <span class="{{ $milestone->completed ? 'text-decoration-line-through' : '' }}">
-                                                                                        {{ Str::limit($milestone->description, 30) }}
-                                                                                    </span>
-                                                                                </div>
-                                                                            @endforeach
-                                                                            @if($goal->milestones->count() > 2)
-                                                                                <small class="text-muted">+ {{ $goal->milestones->count() - 2 }} more milestones</small>
-                                                                            @endif
-                                                                        </div>
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                        @endforeach
-                                                        @if($hobby->goals->count() > 2)
-                                                            <div class="text-center mt-2">
-                                                                <a href="{{ route('goals.index') }}" class="btn btn-sm btn-outline-primary">
-                                                                    View All Goals ({{ $hobby->goals->count() }})
-                                                                </a>
-                                                            </div>
-                                                        @endif
-                                                    @endif
-                                                </div>
                                             </div>
                                         </div>
-                                    @endforeach
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: {{ $hobby->goals_count > 0 ? ($hobby->completed_goals_count / $hobby->goals_count) * 100 : 0 }}%">
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                                            <small class="text-muted">
+                                                {{ $hobby->completed_goals_count }}/{{ $hobby->goals_count }} Goals Completed
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <div id="hobby-{{ $hobby->id }}-content" class="collapse" 
+                                         aria-labelledby="hobby-{{ $hobby->id }}-heading" 
+                                         data-bs-parent="#hobbiesAccordion">
+                                        <div class="accordion-body">
+                                            @if($hobby->goals->isEmpty())
+                                                <p class="text-center text-muted my-3">No goals set for this hobby yet.</p>
+                                                <div class="text-center">
+                                                    <a href="{{ route('goals.create') }}" class="btn btn-sm btn-primary">
+                                                        <i class="bi bi-plus-circle"></i> Add Goal
+                                                    </a>
+                                                </div>
+                                            @else
+                                                <div class="list-group list-group-flush">
+                                                    @foreach($hobby->goals as $goal)
+                                                        <div class="list-group-item border-0 px-3 py-2">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <div>
+                                                                    <i class="bi {{ $goal->status === 'completed' ? 'bi-check-circle-fill text-success' : 'bi-circle' }} me-2"></i>
+                                                                    {{ $goal->goal }}
+                                                                </div>
+                                                                <span class="badge {{ $goal->status === 'completed' ? 'bg-success' : 'bg-primary' }}">
+                                                                    {{ ucfirst($goal->status) }}
+                                                                </span>
+                                                            </div>
+                                                            @if($goal->milestones->isNotEmpty())
+                                                                <div class="ms-4 mt-2">
+                                                                    @foreach($goal->milestones as $milestone)
+                                                                        <div class="d-flex align-items-center mb-1">
+                                                                            <i class="bi {{ $milestone->completed ? 'bi-check-circle-fill text-success' : 'bi-circle' }} me-2 small"></i>
+                                                                            <small class="{{ $milestone->completed ? 'text-decoration-line-through' : '' }}">
+                                                                                {{ $milestone->description }}
+                                                                            </small>
+                                                                        </div>
+                                                                    @endforeach
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Community Highlights -->
-        <div class="col-md-6">
-            <div class="card shadow h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div class="d-flex align-items-center">
-                            <span class="fs-5 me-2">🏘️</span>
-                            <h5 class="mb-0">Community Highlights</h5>
-                        </div>
-                        <a href="{{ route('community.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
-                    </div>
-                    @if($recentCommunityPosts->isEmpty())
-                        <p class="text-muted">No recent posts</p>
-                    @else
-                        <div class="list-group list-group-flush">
-                            @foreach($recentCommunityPosts as $post)
-                                <a href="{{ route('community.index') }}" 
-                                   class="list-group-item list-group-item-action">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">{{ Str::limit($post->title, 30) }}</h6>
-                                        <small>{{ $post->created_at->diffForHumans() }}</small>
-                                    </div>
-                                </a>
                             @endforeach
                         </div>
                     @endif
@@ -162,35 +166,144 @@
             </div>
         </div>
 
-        <!-- Library Resources -->
-        <div class="col-md-6">
-            <div class="card shadow h-100">
+        <!-- Quick Actions -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div class="d-flex align-items-center">
-                            <span class="fs-5 me-2">📚</span>
-                            <h5 class="mb-0">Recent Resources</h5>
-                        </div>
-                        <a href="{{ route('library') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                    <div class="d-grid gap-2">
+                        <a href="{{ route('goals.index') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-bullseye"></i> Set New Goal
+                        </a>
+                        <a href="{{ route('recommendation') }}" class="btn btn-outline-info">
+                            <i class="bi bi-lightbulb"></i> Get Recommendations
+                        </a>
+                        <a href="{{ route('community.index') }}" class="btn btn-outline-success">
+                            <i class="bi bi-people"></i> Join Community
+                        </a>
+                        <a href="{{ route('library') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-book"></i> Browse Resources
+                        </a>
                     </div>
-                    @if($popularResources->isEmpty())
-                        <p class="text-muted">No resources available</p>
-                    @else
-                        <div class="list-group list-group-flush">
-                            @foreach($popularResources as $resource)
-                                <a href="{{ route('library') }}" 
-                                   class="list-group-item list-group-item-action">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">{{ Str::limit($resource->title, 30) }}</h6>
-                                        <small>{{ $resource->created_at->diffForHumans() }}</small>
-                                    </div>
-                                </a>
-                            @endforeach
-                        </div>
-                    @endif
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Create Hobby Modal -->
+<div class="modal fade" id="createHobbyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Hobby</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('hobbies.store') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Hobby Name</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Experience Level</label>
+                        <select name="experience_level" class="form-select" required>
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Expert">Expert</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Hobby</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Hobby Modals -->
+@foreach($hobbies as $hobby)
+    <div class="modal fade" id="editHobbyModal{{ $hobby->id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Hobby</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ route('hobbies.update', $hobby) }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Hobby Name</label>
+                            <input type="text" name="name" class="form-control" value="{{ $hobby->name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-control" rows="3" required>{{ $hobby->description }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Experience Level</label>
+                            <select name="experience_level" class="form-select" required>
+                                <option value="Beginner" {{ $hobby->experience_level == 'Beginner' ? 'selected' : '' }}>Beginner</option>
+                                <option value="Intermediate" {{ $hobby->experience_level == 'Intermediate' ? 'selected' : '' }}>Intermediate</option>
+                                <option value="Expert" {{ $hobby->experience_level == 'Expert' ? 'selected' : '' }}>Expert</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endforeach
+
+<!-- Delete Form -->
+<form id="deleteHobbyForm" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
+
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle delete button clicks
+        document.querySelectorAll('.delete-hobby-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                confirmDelete(this.dataset.hobbyId);
+            });
+        });
+
+        function confirmDelete(hobbyId) {
+            if (confirm('Are you sure you want to delete this hobby? All associated goals and milestones will also be deleted.')) {
+                const form = document.getElementById('deleteHobbyForm');
+                form.action = `/hobbies/${hobbyId}`;
+                form.submit();
+            }
+        }
+
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            document.querySelectorAll('.alert').forEach(alert => {
+                if (alert) {
+                    alert.style.display = 'none';
+                }
+            });
+        }, 5000);
+    });
+</script>
 @endsection

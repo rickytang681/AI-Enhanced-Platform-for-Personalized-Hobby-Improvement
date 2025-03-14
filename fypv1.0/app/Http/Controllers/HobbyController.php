@@ -29,7 +29,9 @@ class HobbyController extends Controller
 
         $hobby = auth()->user()->hobbies()->create($validated);
 
-        return redirect()->route('hobbies.index')
+        $redirectRoute = $request->has('from_dashboard') ? 'dashboard' : 'hobbies.index';
+        
+        return redirect()->route($redirectRoute)
             ->with('success', 'Hobby created successfully! Would you like to set some goals for this hobby?')
             ->with('new_hobby_id', $hobby->id);
     }
@@ -49,34 +51,31 @@ class HobbyController extends Controller
 
         $hobby->update($validated);
 
-        return redirect()->route('hobbies.index')
+        $redirectRoute = $request->has('from_dashboard') ? 'dashboard' : 'hobbies.index';
+        
+        return redirect()->route($redirectRoute)
             ->with('success', 'Hobby updated successfully!');
     }
 
     public function destroy(Hobby $hobby)
     {
         try {
-            // Check if the authenticated user owns this hobby
             if ($hobby->user_id !== auth()->id()) {
-                return redirect()->route('hobbies.index')
-                    ->with('error', 'Unauthorized action.');
+                return back()->with('error', 'Unauthorized action.');
             }
 
             DB::beginTransaction();
             try {
-                // The boot method in the model will handle cascading deletes
                 $hobby->delete();
                 DB::commit();
 
-                return redirect()->route('hobbies.index')
-                    ->with('success', 'Hobby and all associated goals and milestones deleted successfully!');
+                return back()->with('success', 'Hobby and all associated goals and milestones deleted successfully!');
             } catch (\Exception $e) {
                 DB::rollBack();
                 throw $e;
             }
         } catch (\Exception $e) {
-            return redirect()->route('hobbies.index')
-                ->with('error', 'Failed to delete hobby. Please try again.');
+            return back()->with('error', 'Failed to delete hobby. Please try again.');
         }
     }
 }

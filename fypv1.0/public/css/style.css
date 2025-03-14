@@ -1067,3 +1067,53 @@ footer a:hover {
 .outcome-section {
     border-left: 4px solid #6f42c1;
 }
+
+/* Dashboard Specific Styles */
+.welcome-banner {
+    background: linear-gradient(to right, #ffffff, #f8f9fa);
+    border-left: 4px solid #0d6efd;
+}
+
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.progress {
+    background-color: #f0f0f0;
+}
+
+.progress-bar {
+    background-color: #0d6efd;
+}
+
+.list-group-item {
+    border-left: 0;
+    border-right: 0;
+}
+
+.list-group-item:first-child {
+    border-top: 0;
+}
+
+.list-group-item:last-child {
+    border-bottom: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .welcome-banner {
+        text-align: center;
+    }
+    
+    .welcome-banner h2 {
+        font-size: 1.5rem;
+    }
+    
+    .card-header h5 {
+        font-size: 1.1rem;
+    }
+}
