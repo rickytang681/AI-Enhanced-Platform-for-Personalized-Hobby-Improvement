@@ -374,4 +374,65 @@ class LibraryController extends Controller
         // Return file download response
         return Storage::disk('public')->download($item->file_path, $fileName);
     }
-} 
+
+    public function getMyResources()
+    {
+        $resources = LibraryItem::where('user_id', auth()->id())
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'resources' => $resources
+        ]);
+    }
+
+    public function updateResource(Request $request, LibraryItem $item)
+    {
+        // Check if user owns the resource
+        if ($item->user_id !== auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string|max:1000',
+            'category' => 'required|string|max:50',
+            'subcategory' => 'required|string|max:50',
+        ]);
+
+        $item->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Resource updated successfully',
+            'resource' => $item
+        ]);
+    }
+
+    public function deleteResource(LibraryItem $item)
+    {
+        // Check if user owns the resource
+        if ($item->user_id !== auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 403);
+        }
+
+        // Delete file if exists
+        if ($item->file_path && Storage::disk('public')->exists($item->file_path)) {
+            Storage::disk('public')->delete($item->file_path);
+        }
+
+        $item->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Resource deleted successfully'
+        ]);
+    }
+}

@@ -290,15 +290,88 @@ class CommunityController extends Controller
         ]);
     }
 
-    public function destroy(Community $community)
+    public function getMyPosts()
     {
-        if ($community->user_id !== Auth::id()) {
-            abort(403);
+        try {
+            $posts = Community::where('user_id', auth()->id())
+                ->with('user')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'posts' => $posts
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error in getMyPosts: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch posts'
+            ], 500);
+        }
+    }
+
+    public function updatePost(Request $request, Community $community)
+    {
+        // Check if user owns the post
+        if ($community->user_id !== auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 403);
         }
 
-        $community->delete();
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'content' => 'required|string',
+                'post_type' => 'required|in:question,experience,discussion',
+                'tag' => 'required|string|max:50',
+            ]);
 
-        return redirect()->route('community.index')
-            ->with('success', 'Post deleted successfully!');
+            $community->update($validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Post updated successfully',
+                'post' => $community
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error updating post: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update post'
+            ], 500);
+        }
+    }
+
+    public function destroy(Community $community)
+    {
+        if ($community->user_id !== auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 403);
+        }
+
+        try {
+            // Delete the cover image if it exists
+            if ($community->cover_image && Storage::disk('public')->exists($community->cover_image)) {
+                Storage::disk('public')->delete($community->cover_image);
+            }
+
+            $community->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Post deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error deleting post: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete post'
+            ], 500);
+        }
     }
 }

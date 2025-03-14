@@ -2,11 +2,17 @@
 
 @section('content')
 <div class="container mt-5">
+    <!-- Header with Community title and My Posts button -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">Community</h4>
+        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#myPostsModal">
+            <i class="bi bi-file-text-fill me-1"></i> My Posts
+        </button>
+    </div>
+
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card p-4">
-                <h4 class="text-center mb-4">Community</h4>
-
                 <!-- Search Bar and Filters -->
                 <div class="filter-section mb-4">
                     <form id="search-form" class="mb-3">
@@ -358,6 +364,85 @@
     </div>
 </div>
 
+<!-- My Posts Modal -->
+<div class="modal fade" id="myPostsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">My Posts</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Tag</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="myPostsTable">
+                            <!-- Content will be loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Post Modal -->
+<div class="modal fade" id="editPostModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Post</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editPostForm">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="post_id" id="edit_post_id">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input type="text" name="title" class="form-control" id="edit_title" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Content</label>
+                        <textarea name="content" class="form-control" id="edit_content" rows="3" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Post Type</label>
+                        <select name="post_type" class="form-control" id="edit_post_type" required>
+                            <option value="question">Question</option>
+                            <option value="experience">Experience</option>
+                            <option value="discussion">Discussion</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tag</label>
+                        <select name="tag" class="form-control" id="edit_tag" required>
+                            @foreach($tags as $tag)
+                                <option value="{{ $tag }}">{{ $tag }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Update Post</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script src="{{ asset('js/community.js') }}"></script>
 <script>
@@ -389,6 +474,102 @@ document.addEventListener('DOMContentLoaded', function() {
         new bootstrap.Modal(document.getElementById('createPostModal')).show();
     @endif
 });
+
+    // Load my posts when modal opens
+    $('#myPostsModal').on('show.bs.modal', function () {
+        loadMyPosts();
+    });
+
+    function loadMyPosts() {
+        $.get('/community/my-posts', function(response) {
+            if (response.posts) {
+                let html = '';
+                response.posts.forEach(function(post) {
+                    html += `
+                        <tr data-post-id="${post.id}">
+                            <td>${post.title}</td>
+                            <td>${post.post_type}</td>
+                            <td>${post.tag}</td>
+                            <td>${new Date(post.created_at).toLocaleDateString()}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary edit-post" 
+                                        data-post-id="${post.id}"
+                                        data-title="${post.title}"
+                                        data-content="${post.content}"
+                                        data-post-type="${post.post_type}"
+                                        data-tag="${post.tag}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger delete-post" 
+                                        data-post-id="${post.id}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                $('#myPostsTable').html(html);
+            }
+        });
+    }
+
+    // Edit post
+    $(document).on('click', '.edit-post', function() {
+        const post = $(this).data();
+        $('#edit_post_id').val(post.postId);
+        $('#edit_title').val(post.title);
+        $('#edit_content').val(post.content);
+        $('#edit_post_type').val(post.postType);
+        $('#edit_tag').val(post.tag);
+        
+        $('#myPostsModal').modal('hide');
+        $('#editPostModal').modal('show');
+    });
+
+    // Handle edit form submission
+    $('#editPostForm').on('submit', function(e) {
+        e.preventDefault();
+        const postId = $('#edit_post_id').val();
+        
+        $.ajax({
+            url: `/community/${postId}/update`,
+            type: 'PUT',
+            data: $(this).serialize(),
+            success: function(response) {
+                if (response.success) {
+                    $('#editPostModal').modal('hide');
+                    $('#myPostsModal').modal('show');
+                    loadMyPosts();
+                    alert('Post updated successfully');
+                }
+            },
+            error: function(xhr) {
+                alert('Error updating post');
+            }
+        });
+    });
+
+    // Delete post
+    $(document).on('click', '.delete-post', function() {
+        if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+            const postId = $(this).data('postId');
+            
+            $.ajax({
+                url: `/community/${postId}`,
+                type: 'DELETE',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    loadMyPosts();
+                    alert('Post deleted successfully');
+                },
+                error: function(xhr) {
+                    alert('Error deleting post');
+                }
+            });
+        }
+    });
 </script>
 @endpush
 @endsection

@@ -80,6 +80,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/library/{item}/save', 'toggleSave')->name('library.save');
         Route::get('/library/{item}/comments', 'getComments')->name('library.comments');
         Route::get('/library/{item}/download', 'download')->name('library.download');
+        Route::get('/library/my-resources', 'getMyResources')->name('library.my-resources');
+        Route::put('/library/{item}/update', 'updateResource')->name('library.update-resource');
+        Route::delete('/library/{item}/delete', 'deleteResource')->name('library.delete-resource');
     });
 
     // Community Routes
@@ -91,7 +94,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/community/{community}/comments', [CommunityController::class, 'getComments'])->name('community.comments');
     Route::post('/community/{community}/react', [CommunityController::class, 'react'])->name('community.react');
     Route::delete('/community/{community}', [CommunityController::class, 'destroy'])->name('community.destroy');
-    
+    Route::get('/community/my-posts', [CommunityController::class, 'getMyPosts'])->name('community.my-posts');
+    Route::put('/community/{community}/update', [CommunityController::class, 'updatePost'])->name('community.update-post');
+    Route::post('/community/{community}/toggle-save', [CommunityController::class, 'toggleSave'])->name('community.toggle-save');
+    Route::get('/community/my-resources', [CommunityController::class, 'getMyResources'])->name('community.my-resources');
+
     // Additional community routes
     Route::post('/community/{community}/react', [CommunityController::class, 'react'])->name('community.react');
     Route::post('/community/{community}/save', [CommunityController::class, 'toggleSave'])->name('community.save');

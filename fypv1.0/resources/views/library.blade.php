@@ -5,7 +5,13 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card p-4">
-                <h4 class="text-center mb-4">Resource Library</h4>
+                <!-- Header with Resource Library title and My Resources button -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="mb-0">Resource Library</h4>
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#myResourcesModal">
+                        <i class="bi bi-folder-fill me-1"></i> My Resources
+                    </button>
+                </div>
 
                 <!-- Search Bar -->
                 <div class="filter-section mb-4">
@@ -464,8 +470,180 @@
     </div>
 </div>
 
+<!-- My Resources Modal -->
+<div class="modal fade" id="myResourcesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">My Resources</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Category</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="myResourcesTable">
+                            <!-- Content will be loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Resource Modal -->
+<div class="modal fade" id="editResourceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Resource</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editResourceForm">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="resource_id" id="edit_resource_id">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input type="text" name="title" class="form-control" id="edit_title" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" id="edit_description" rows="3" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select name="category" class="form-control" id="edit_category" required>
+                            @foreach($categories as $category)
+                                <option value="{{ $category }}">{{ $category }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Subcategory</label>
+                        <select name="subcategory" class="form-control" id="edit_subcategory" required>
+                            @foreach($subcategories as $subcategory)
+                                <option value="{{ $subcategory }}">{{ $subcategory }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Update Resource</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script src="{{ asset('js/library.js') }}"></script>
+<script>
+    // Load my resources when modal opens
+    $('#myResourcesModal').on('show.bs.modal', function () {
+        loadMyResources();
+    });
+
+    function loadMyResources() {
+        $.get('/library/my-resources', function(response) {
+            if (response.success) {
+                let html = '';
+                response.resources.forEach(function(resource) {
+                    html += `
+                        <tr data-resource-id="${resource.id}">
+                            <td>${resource.title}</td>
+                            <td>${resource.type}</td>
+                            <td>${resource.category}</td>
+                            <td>${new Date(resource.created_at).toLocaleDateString()}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary edit-resource" 
+                                        data-resource-id="${resource.id}"
+                                        data-title="${resource.title}"
+                                        data-description="${resource.description}"
+                                        data-category="${resource.category}"
+                                        data-subcategory="${resource.subcategory}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger delete-resource" 
+                                        data-resource-id="${resource.id}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                $('#myResourcesTable').html(html);
+            }
+        });
+    }
+
+    // Edit resource
+    $(document).on('click', '.edit-resource', function() {
+        const resource = $(this).data();
+        $('#edit_resource_id').val(resource.resourceId);
+        $('#edit_title').val(resource.title);
+        $('#edit_description').val(resource.description);
+        $('#edit_category').val(resource.category);
+        $('#edit_subcategory').val(resource.subcategory);
+        
+        $('#myResourcesModal').modal('hide');
+        $('#editResourceModal').modal('show');
+    });
+
+    // Handle edit form submission
+    $('#editResourceForm').on('submit', function(e) {
+        e.preventDefault();
+        const resourceId = $('#edit_resource_id').val();
+        
+        $.ajax({
+            url: `/library/${resourceId}/update`,
+            type: 'PUT',
+            data: $(this).serialize(),
+            success: function(response) {
+                if (response.success) {
+                    $('#editResourceModal').modal('hide');
+                    $('#myResourcesModal').modal('show');
+                    loadMyResources();
+                    alert('Resource updated successfully');
+                }
+            }
+        });
+    });
+
+    // Delete resource
+    $(document).on('click', '.delete-resource', function() {
+        if (confirm('Are you sure you want to delete this resource?')) {
+            const resourceId = $(this).data('resourceId');
+            
+            $.ajax({
+                url: `/library/${resourceId}/delete`,
+                type: 'DELETE',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        loadMyResources();
+                        alert('Resource deleted successfully');
+                    }
+                }
+            });
+        }
+    });
+</script>
 @endpush
 @endsection
 
