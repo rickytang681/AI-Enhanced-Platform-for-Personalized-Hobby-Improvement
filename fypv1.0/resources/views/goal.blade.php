@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                                 {{ $goal->progress == 100 ? 'Completed' : 'In Progress' }}
                                                             </span>
                                                             <div class="btn-group">
-                                                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editGoalModal{{ $goal->id }}">
+                                                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editGoalModal_{{ $hobbyId }}_{{ $goal->id }}">
                                                                     <i class="bi bi-pencil"></i>
                                                                 </button>
                                                                 @can('delete', $goal)
@@ -287,27 +287,25 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <div class="milestones-section">
                                                         <h6 class="d-flex justify-content-between align-items-center">
                                                             Milestones
-                                                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addMilestoneModal{{ $goal->id }}">
+                                                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addMilestoneModal_{{ $hobbyId }}_{{ $goal->id }}">
                                                                 <i class="bi bi-plus"></i> Add Milestone
                                                             </button>
                                                         </h6>
                                                         <ul class="list-group">
                                                             @foreach($goal->milestones as $milestone)
                                                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                                    <div class="milestone-content">
+                                                                    <div class="milestone-content" data-milestone-id="{{ $milestone->id }}">
                                                                         <input type="checkbox" class="form-check-input me-2 milestone-checkbox"
-                                                                               data-milestone-id="{{ $milestone->id }}"
                                                                                data-goal-id="{{ $goal->id }}"
+                                                                               data-milestone-id="{{ $milestone->id }}"
                                                                                {{ $milestone->completed ? 'checked' : '' }}>
-                                                                        <span class="{{ $milestone->completed ? 'text-decoration-line-through' : '' }}">
-                                                                            {{ $milestone->description }}
-                                                                        </span>
-                                                                        <small class="text-muted ms-2">Due: {{ $milestone->due_date->format('Y-m-d') }}</small>
+                                                                        <span class="milestone-description">{{ $milestone->description }}</span>
+                                                                        <small class="text-muted milestone-due-date">Due: {{ $milestone->due_date->format('Y-m-d') }}</small>
                                                                     </div>
                                                                     <div class="milestone-actions">
                                                                         <button class="btn btn-sm btn-outline-primary me-1" 
                                                                                 data-bs-toggle="modal" 
-                                                                                data-bs-target="#editMilestoneModal{{ $milestone->id }}">
+                                                                                data-bs-target="#editMilestoneModal_{{ $goal->id }}_{{ $milestone->id }}">
                                                                             <i class="bi bi-pencil"></i>
                                                                         </button>
                                                                         @can('delete', $milestone)
@@ -517,117 +515,128 @@ document.addEventListener('DOMContentLoaded', function() {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
 @endsection
 
-<!-- Add Edit Goal Modal -->
-@foreach($goals as $goal)
-    <div class="modal fade" id="editGoalModal{{ $goal->id }}" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Goal</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Modal Containers -->
+@foreach($goalsByHobby as $hobbyId => $goals)
+    @foreach($goals as $goal)
+        <!-- Goal Edit Modal -->
+        <div class="modal fade" id="editGoalModal_{{ $hobbyId }}_{{ $goal->id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Goal for {{ $goal->hobby->name }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form action="{{ route('goals.update', $goal->id) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <div class="modal-body">
+                            <input type="hidden" name="hobby_id" value="{{ $hobbyId }}">
+                            <div class="mb-3">
+                                <label class="form-label">Goal</label>
+                                <input type="text" name="goal" class="form-control" value="{{ $goal->goal }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Deadline</label>
+                                <input type="date" name="deadline" class="form-control" 
+                                       value="{{ $goal->deadline->format('Y-m-d') }}" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
                 </div>
-                <form action="{{ route('goals.update', $goal->id) }}" method="POST">
-                    @csrf
-                    @method('PUT')
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Goal</label>
-                            <input type="text" name="goal" class="form-control" value="{{ $goal->goal }}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Hobby</label>
-                            <select name="hobby_id" class="form-select" required>
-                                @foreach($hobbies as $hobby)
-                                    <option value="{{ $hobby->id }}" {{ $goal->hobby_id == $hobby->id ? 'selected' : '' }}>
-                                        {{ $hobby->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Deadline</label>
-                            <input type="date" name="deadline" class="form-control" 
-                                   value="{{ $goal->deadline->format('Y-m-d') }}" required>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </div>
-                </form>
             </div>
         </div>
-    </div>
-@endforeach
 
-<!-- Add Edit Milestone Modal -->
-@foreach($goals as $goal)
-    <div class="modal fade" id="addMilestoneModal{{ $goal->id }}" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add Milestone</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <!-- Add Milestone Modal -->
+        <div class="modal fade" id="addMilestoneModal_{{ $hobbyId }}_{{ $goal->id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add New Milestone</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form action="{{ route('goals.milestones.store', $goal->id) }}" method="POST">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <input type="text" name="description" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Due Date</label>
+                                <input type="date" name="due_date" class="form-control" 
+                                       min="{{ date('Y-m-d') }}" 
+                                       max="{{ $goal->deadline->format('Y-m-d') }}" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Add Milestone</button>
+                        </div>
+                    </form>
                 </div>
-                <form action="{{ route('goals.milestones.store', $goal->id) }}" method="POST">
-                    @csrf
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Description</label>
-                            <input type="text" name="description" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Due Date</label>
-                            <input type="date" name="due_date" class="form-control" 
-                                   min="{{ date('Y-m-d') }}" 
-                                   max="{{ $goal->deadline->format('Y-m-d') }}" required>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Add Milestone</button>
-                    </div>
-                </form>
             </div>
         </div>
-    </div>
-@endforeach
 
-<!-- Add Edit Milestone Modal -->
-@foreach($goals as $goal)
-    @foreach($goal->milestones as $milestone)
-    <div class="modal fade" id="editMilestoneModal{{ $milestone->id }}" tabindex="-1" aria-labelledby="editMilestoneModalLabel{{ $milestone->id }}" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editMilestoneModalLabel{{ $milestone->id }}">Edit Milestone</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="editDescription{{ $milestone->id }}" class="form-label">Description</label>
-                        <input type="text" id="editDescription{{ $milestone->id }}" class="form-control" 
-                               value="{{ $milestone->description }}" required>
+        <!-- Milestone Edit Modals -->
+        @foreach($goal->milestones as $milestone)
+            <div class="modal fade" id="editMilestoneModal_{{ $goal->id }}_{{ $milestone->id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Milestone</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <input type="text" class="form-control" 
+                                       id="editDescription_{{ $goal->id }}_{{ $milestone->id }}" 
+                                       value="{{ $milestone->description }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Due Date</label>
+                                <input type="date" class="form-control" 
+                                       id="editDueDate_{{ $goal->id }}_{{ $milestone->id }}" 
+                                       value="{{ $milestone->due_date->format('Y-m-d') }}" 
+                                       min="{{ date('Y-m-d') }}" 
+                                       max="{{ $goal->deadline->format('Y-m-d') }}" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" 
+                                    onclick="updateMilestone({{ $goal->id }}, {{ $milestone->id }})">
+                                Save Changes
+                            </button>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="editDueDate{{ $milestone->id }}" class="form-label">Due Date</label>
-                        <input type="date" id="editDueDate{{ $milestone->id }}" class="form-control" 
-                               value="{{ $milestone->due_date->format('Y-m-d') }}"
-                               min="{{ date('Y-m-d') }}" 
-                               max="{{ $goal->deadline->format('Y-m-d') }}" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="updateMilestone({{ $goal->id }}, {{ $milestone->id }})">
-                        Save Changes
-                    </button>
                 </div>
             </div>
-        </div>
-    </div>
+        @endforeach
     @endforeach
 @endforeach
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all modals
+    document.querySelectorAll('[data-bs-toggle="modal"]').forEach(button => {
+        button.addEventListener('click', function() {
+            const targetModal = this.getAttribute('data-bs-target');
+            const modalElement = document.querySelector(targetModal);
+            if (modalElement) {
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            }
+        });
+    });
+});
+</script>
+@endpush
 
 <!-- Add delete forms -->
 <form id="deleteGoalForm" method="POST" style="display: none;">
@@ -642,13 +651,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 function updateMilestone(goalId, milestoneId) {
-    const description = document.getElementById(`editDescription${milestoneId}`).value;
-    const dueDate = document.getElementById(`editDueDate${milestoneId}`).value;
+    const description = document.getElementById(`editDescription_${goalId}_${milestoneId}`).value;
+    const dueDate = document.getElementById(`editDueDate_${goalId}_${milestoneId}`).value;
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-    // Get the modal instance before making the fetch request
-    const modalElement = document.getElementById(`editMilestoneModal${milestoneId}`);
-    const modal = bootstrap.Modal.getInstance(modalElement);
+    if (!description.trim()) {
+        showAlert('Description cannot be empty', 'danger');
+        return;
+    }
+
+    if (!dueDate) {
+        showAlert('Due date is required', 'danger');
+        return;
+    }
 
     fetch(`/goals/${goalId}/milestones/${milestoneId}`, {
         method: 'PUT',
@@ -662,53 +677,56 @@ function updateMilestone(goalId, milestoneId) {
             due_date: dueDate
         })
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Update the milestone text in the UI
-            const milestoneElement = document.querySelector(`[data-milestone-id="${milestoneId}"]`);
-            if (milestoneElement) {
-                const descriptionSpan = milestoneElement.querySelector('.milestone-content span');
-                if (descriptionSpan) {
-                    descriptionSpan.textContent = description;
-                }
-            }
-
-            // Close the modal
+            // Close the modal properly
+            const modalElement = document.getElementById(`editMilestoneModal_${goalId}_${milestoneId}`);
+            const modal = bootstrap.Modal.getInstance(modalElement);
             if (modal) {
                 modal.hide();
+                // Remove backdrop manually
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) {
+                    backdrop.remove();
+                }
+                // Remove modal-open class from body
+                document.body.classList.remove('modal-open');
+                document.body.style.removeProperty('padding-right');
             }
-
-            // Show success message using the existing showAlert function
-            showAlert('Milestone updated successfully');
-
-            // Update the due date display if you have one
-            const dueDateElement = milestoneElement.querySelector('.milestone-due-date');
-            if (dueDateElement) {
-                const formattedDate = new Date(dueDate).toLocaleDateString();
-                dueDateElement.textContent = formattedDate;
+            
+            // Update the UI
+            const milestoneContent = document.querySelector(`[data-milestone-id="${milestoneId}"]`);
+            if (milestoneContent) {
+                milestoneContent.querySelector('.milestone-description').textContent = description;
+                milestoneContent.querySelector('.milestone-due-date').textContent = `Due: ${dueDate}`;
             }
+            
+            showAlert('Milestone updated successfully', 'success');
+        } else {
+            showAlert(data.message || 'Failed to update milestone', 'danger');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showAlert('Failed to update milestone. Please try again.', 'danger');
-    })
-    .finally(() => {
-        // Clean up any remaining modal backdrop
-        const modalBackdrop = document.querySelector('.modal-backdrop');
-        if (modalBackdrop) {
-            modalBackdrop.remove();
-        }
-        // Remove modal-open class from body
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-        document.body.style.paddingRight = '';
+        showAlert('Failed to update milestone', 'danger');
     });
+}
+
+// Confirm delete functions
+function confirmDeleteGoal(goalId) {
+    if (confirm('Are you sure you want to delete this goal? All associated milestones will also be deleted.')) {
+        const form = document.getElementById('deleteGoalForm');
+        form.action = `/goals/${goalId}`;
+        form.submit();
+    }
+}
+
+function confirmDeleteMilestone(goalId, milestoneId) {
+    if (confirm('Are you sure you want to delete this milestone?')) {
+        const form = document.getElementById('deleteMilestoneForm');
+        form.action = `/goals/${goalId}/milestones/${milestoneId}`;
+        form.submit();
+    }
 }
 </script>
