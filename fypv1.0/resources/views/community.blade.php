@@ -2,17 +2,17 @@
 
 @section('content')
 <div class="container mt-5">
-    <!-- Header with Community title and My Posts button -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">Community</h4>
-        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#myPostsModal">
-            <i class="bi bi-file-text-fill me-1"></i> My Posts
-        </button>
-    </div>
-
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card p-4">
+                <!-- Header with Community title and My Posts button -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="mb-0">Community</h4>
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#myPostsModal">
+                        <i class="bi bi-file-text-fill me-1"></i> My Posts
+                    </button>
+                </div>
+                
                 <!-- Search Bar and Filters -->
                 <div class="filter-section mb-4">
                     <form id="search-form" class="mb-3">
@@ -373,21 +373,8 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Type</th>
-                                <th>Tag</th>
-                                <th>Created</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="myPostsTable">
-                            <!-- Content will be loaded dynamically -->
-                        </tbody>
-                    </table>
+                <div id="myPostsContainer">
+                    <!-- Posts will be loaded here -->
                 </div>
             </div>
         </div>
@@ -396,7 +383,7 @@
 
 <!-- Edit Post Modal -->
 <div class="modal fade" id="editPostModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Edit Post</h5>
@@ -405,7 +392,6 @@
             <div class="modal-body">
                 <form id="editPostForm">
                     @csrf
-                    @method('PUT')
                     <input type="hidden" name="post_id" id="edit_post_id">
                     
                     <div class="mb-3">
@@ -415,28 +401,27 @@
 
                     <div class="mb-3">
                         <label class="form-label">Content</label>
-                        <textarea name="content" class="form-control" id="edit_content" rows="3" required></textarea>
+                        <textarea name="content" class="form-control" id="edit_content" rows="4" required></textarea>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Post Type</label>
-                        <select name="post_type" class="form-control" id="edit_post_type" required>
+                        <select name="post_type" class="form-select" id="edit_post_type" required>
                             <option value="question">Question</option>
-                            <option value="experience">Experience</option>
-                            <option value="discussion">Discussion</option>
+                            <option value="experience">Experience Sharing</option>
+                            <option value="discussion">Discussion Topic</option>
                         </select>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Tag</label>
-                        <select name="tag" class="form-control" id="edit_tag" required>
-                            @foreach($tags as $tag)
-                                <option value="{{ $tag }}">{{ $tag }}</option>
-                            @endforeach
-                        </select>
+                        <input type="text" name="tag" class="form-control" id="edit_tag" required>
                     </div>
 
-                    <button type="submit" class="btn btn-primary">Update Post</button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Post</button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -446,81 +431,101 @@
 @push('scripts')
 <script src="{{ asset('js/community.js') }}"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle tag selection
-    const tagSelect = document.getElementById('tagSelect');
-    const newTagInput = document.getElementById('newTag');
-
-    tagSelect.addEventListener('change', function() {
-        if (this.value === 'new') {
-            newTagInput.style.display = 'block';
-            newTagInput.required = true;
-        } else {
-            newTagInput.style.display = 'none';
-            newTagInput.required = false;
-        }
-    });
-
-    // Reset form when modal is closed
-    const createPostModal = document.getElementById('createPostModal');
-    createPostModal.addEventListener('hidden.bs.modal', function () {
-        document.getElementById('createPostForm').reset();
-        newTagInput.style.display = 'none';
-        newTagInput.required = false;
-    });
-
-    // Handle form submission errors
-    @if($errors->any())
-        new bootstrap.Modal(document.getElementById('createPostModal')).show();
-    @endif
-});
-
+$(document).ready(function() {
     // Load my posts when modal opens
     $('#myPostsModal').on('show.bs.modal', function () {
         loadMyPosts();
     });
 
     function loadMyPosts() {
-        $.get('/community/my-posts', function(response) {
-            if (response.posts) {
-                let html = '';
-                response.posts.forEach(function(post) {
-                    html += `
-                        <tr data-post-id="${post.id}">
-                            <td>${post.title}</td>
-                            <td>${post.post_type}</td>
-                            <td>${post.tag}</td>
-                            <td>${new Date(post.created_at).toLocaleDateString()}</td>
-                            <td>
-                                <button class="btn btn-sm btn-primary edit-post" 
-                                        data-post-id="${post.id}"
-                                        data-title="${post.title}"
-                                        data-content="${post.content}"
-                                        data-post-type="${post.post_type}"
-                                        data-tag="${post.tag}">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-sm btn-danger delete-post" 
-                                        data-post-id="${post.id}">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-                $('#myPostsTable').html(html);
+        $.ajax({
+            url: '{{ route("community.my-posts") }}',
+            method: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    let html = '';
+                    if (response.resources && response.resources.length > 0) {
+                        response.resources.forEach(function(post) {
+                            html += `
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="w-100">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <h5 class="card-title mb-0">${escapeHtml(post.title)}</h5>
+                                                    <div class="btn-group">
+                                                        <button class="btn btn-sm btn-outline-primary edit-post" 
+                                                            data-post-id="${post.id}"
+                                                            data-title="${escapeHtml(post.title)}"
+                                                            data-content="${escapeHtml(post.content)}"
+                                                            data-post-type="${escapeHtml(post.post_type)}"
+                                                            data-tag="${escapeHtml(post.tag)}">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger delete-post" 
+                                                            data-post-id="${post.id}">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div class="text-muted small mb-2">
+                                                    <span class="badge bg-primary me-2">${escapeHtml(post.post_type)}</span>
+                                                    <span class="badge bg-secondary me-2">${escapeHtml(post.tag)}</span>
+                                                    <span>${post.created_at}</span>
+                                                </div>
+                                                <p class="card-text">${escapeHtml(post.content)}</p>
+                                                ${post.cover_image ? `
+                                                    <div class="mt-2">
+                                                        <img src="${post.cover_image}" class="img-fluid rounded" style="max-height: 200px;" alt="Post image">
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        html = '<div class="alert alert-info">You haven\'t created any posts yet.</div>';
+                    }
+                    $('#myPostsContainer').html(html);
+                } else {
+                    $('#myPostsContainer').html('<div class="alert alert-danger">Failed to load posts</div>');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading posts:', error);
+                console.error('Status:', status);
+                console.error('Response:', xhr.responseText);
+                
+                $('#myPostsContainer').html(`
+                    <div class="alert alert-danger">
+                        Error loading posts. Please try again later.
+                        ${xhr.responseJSON && xhr.responseJSON.message ? '<br>' + xhr.responseJSON.message : ''}
+                    </div>
+                `);
             }
         });
     }
 
+    // Helper function to escape HTML and prevent XSS
+    function escapeHtml(unsafe) {
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
     // Edit post
     $(document).on('click', '.edit-post', function() {
-        const post = $(this).data();
-        $('#edit_post_id').val(post.postId);
-        $('#edit_title').val(post.title);
-        $('#edit_content').val(post.content);
-        $('#edit_post_type').val(post.postType);
-        $('#edit_tag').val(post.tag);
+        const postData = $(this).data();
+        $('#edit_post_id').val(postData.postId);
+        $('#edit_title').val(postData.title);
+        $('#edit_content').val(postData.content);
+        $('#edit_post_type').val(postData.postType);
+        $('#edit_tag').val(postData.tag);
         
         $('#myPostsModal').modal('hide');
         $('#editPostModal').modal('show');
@@ -535,15 +540,19 @@ document.addEventListener('DOMContentLoaded', function() {
             url: `/community/${postId}/update`,
             type: 'PUT',
             data: $(this).serialize(),
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
             success: function(response) {
                 if (response.success) {
                     $('#editPostModal').modal('hide');
                     $('#myPostsModal').modal('show');
                     loadMyPosts();
-                    alert('Post updated successfully');
+                    // Reload the main page posts
+                    location.reload();
                 }
             },
-            error: function(xhr) {
+            error: function() {
                 alert('Error updating post');
             }
         });
@@ -557,19 +566,28 @@ document.addEventListener('DOMContentLoaded', function() {
             $.ajax({
                 url: `/community/${postId}`,
                 type: 'DELETE',
-                data: {
-                    _token: '{{ csrf_token() }}'
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(response) {
-                    loadMyPosts();
-                    alert('Post deleted successfully');
+                    if (response.success) {
+                        loadMyPosts();
+                        // Reload the main page posts
+                        location.reload();
+                    }
                 },
-                error: function(xhr) {
+                error: function() {
                     alert('Error deleting post');
                 }
             });
         }
     });
+
+    // Initialize tooltips
+    $(function () {
+        $('[data-bs-toggle="tooltip"]').tooltip();
+    });
+});
 </script>
 @endpush
 @endsection

@@ -294,19 +294,39 @@ class CommunityController extends Controller
     {
         try {
             $posts = Community::where('user_id', auth()->id())
-                ->with('user')
+                ->with('user')  // Include the user relationship
                 ->orderBy('created_at', 'desc')
-                ->get();
+                ->get()
+                ->map(function ($post) {
+                    return [
+                        'id' => $post->id,
+                        'title' => $post->title,
+                        'content' => $post->content,
+                        'post_type' => $post->post_type,
+                        'tag' => $post->tag,
+                        'created_at' => $post->created_at->diffForHumans(),
+                        'cover_image' => $post->cover_image ? asset('storage/' . $post->cover_image) : null,
+                        'user' => [
+                            'name' => $post->user->name,
+                            'profile_picture' => $post->user->profile_picture ? asset('storage/' . $post->user->profile_picture) : asset('images/default-profile.png')
+                        ]
+                    ];
+                });
 
             return response()->json([
                 'success' => true,
-                'posts' => $posts
+                'resources' => $posts  // Changed to match Library's response structure
             ]);
+
         } catch (\Exception $e) {
-            \Log::error('Error in getMyPosts: ' . $e->getMessage());
+            \Log::error('Error in getMyPosts: ' . $e->getMessage(), [
+                'user_id' => auth()->id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to fetch posts'
+                'message' => 'Failed to load posts'
             ], 500);
         }
     }

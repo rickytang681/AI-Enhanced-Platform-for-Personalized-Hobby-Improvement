@@ -86,18 +86,18 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Community Routes
-    Route::get('/community', [CommunityController::class, 'index'])->name('community.index');
-    Route::post('/community', [CommunityController::class, 'store'])->name('community.store');
-    Route::get('/community/{community}', [CommunityController::class, 'show'])->name('community.show');
-    Route::post('/community/{community}/save', [CommunityController::class, 'toggleSave'])->name('community.save');
-    Route::post('/community/{community}/comment', [CommunityController::class, 'addComment'])->name('community.comment');
-    Route::get('/community/{community}/comments', [CommunityController::class, 'getComments'])->name('community.comments');
-    Route::post('/community/{community}/react', [CommunityController::class, 'react'])->name('community.react');
-    Route::delete('/community/{community}', [CommunityController::class, 'destroy'])->name('community.destroy');
-    Route::get('/community/my-posts', [CommunityController::class, 'getMyPosts'])->name('community.my-posts');
-    Route::put('/community/{community}/update', [CommunityController::class, 'updatePost'])->name('community.update-post');
-    Route::post('/community/{community}/toggle-save', [CommunityController::class, 'toggleSave'])->name('community.toggle-save');
-    Route::get('/community/my-resources', [CommunityController::class, 'getMyResources'])->name('community.my-resources');
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/community', [CommunityController::class, 'index'])->name('community.index');
+        Route::post('/community', [CommunityController::class, 'store'])->name('community.store');
+        Route::get('/community/my-posts', [CommunityController::class, 'getMyPosts'])->name('community.my-posts');
+        Route::get('/community/{community}', [CommunityController::class, 'show'])->name('community.show');
+        Route::post('/community/{community}/save', [CommunityController::class, 'toggleSave'])->name('community.save');
+        Route::post('/community/{community}/comment', [CommunityController::class, 'addComment'])->name('community.comment');
+        Route::get('/community/{community}/comments', [CommunityController::class, 'getComments'])->name('community.comments');
+        Route::post('/community/{community}/react', [CommunityController::class, 'react'])->name('community.react');
+        Route::delete('/community/{community}', [CommunityController::class, 'destroy'])->name('community.destroy');
+        Route::put('/community/{community}/update', [CommunityController::class, 'updatePost'])->name('community.update-post');
+    });
 
     // Additional community routes
     Route::post('/community/{community}/react', [CommunityController::class, 'react'])->name('community.react');

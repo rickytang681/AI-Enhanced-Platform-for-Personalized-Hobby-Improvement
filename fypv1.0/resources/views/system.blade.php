@@ -93,6 +93,7 @@
                             <th>ID</th>
                             <th>Title</th>
                             <th>Type</th>
+                            <th>Created By</th>
                             <th>Created At</th>
                             <th>Actions</th>
                         </tr>
@@ -103,6 +104,7 @@
                             <td>{{ $resource->id }}</td>
                             <td>{{ $resource->title }}</td>
                             <td>{{ $resource->type }}</td>
+                            <td>{{ $resource->user ? $resource->user->name : 'Deleted User' }}</td>
                             <td>{{ $resource->created_at->format('Y-m-d H:i') }}</td>
                             <td>
                                 <button class="btn btn-danger btn-sm delete-resource" 

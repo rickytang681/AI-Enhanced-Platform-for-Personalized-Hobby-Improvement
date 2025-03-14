@@ -35,7 +35,7 @@ class LibraryItem extends Model
         // Delete associated file when the library item is deleted
         static::deleting(function($item) {
             if ($item->file_path) {
-                Storage::disk('public')->delete($item->file_path);
+                storage::disk('public')->delete($item->file_path);
             }
         });
     }

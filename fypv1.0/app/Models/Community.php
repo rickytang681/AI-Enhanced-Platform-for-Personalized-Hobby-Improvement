@@ -20,6 +20,9 @@ class Community extends Model
 
     protected $appends = ['likes_count', 'dislikes_count', 'user_reaction'];
 
+    // Define table name explicitly
+    protected $table = 'communities';
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -61,6 +64,7 @@ class Community extends Model
         return $this->reactions()->where('user_id', auth()->id())->first();
     }
 
+    // Add this method to check if a post is saved by a user
     public function isSavedBy($user)
     {
         if (!$user) return false;
