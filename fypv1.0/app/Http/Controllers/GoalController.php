@@ -14,7 +14,7 @@ class GoalController extends Controller
         $this->middleware('auth');
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
         $hobbies = $user->hobbies;
@@ -35,11 +35,15 @@ class GoalController extends Controller
         // Find hobbies without goals
         $hobbiesWithoutGoals = $hobbies->whereNotIn('id', $goals->pluck('hobby_id')->unique());
 
+        // Get the selected hobby_id from the request
+        $selectedHobbyId = $request->query('hobby_id');
+
         return view('goal', [
             'goals' => $goals,
             'hobbies' => $hobbies,
             'goalsByHobby' => $goalsByHobby,
-            'hobbiesWithoutGoals' => $hobbiesWithoutGoals
+            'hobbiesWithoutGoals' => $hobbiesWithoutGoals,
+            'selectedHobbyId' => $selectedHobbyId
         ]);
     }
 
@@ -237,3 +241,4 @@ class GoalController extends Controller
         }
     }
 }
+

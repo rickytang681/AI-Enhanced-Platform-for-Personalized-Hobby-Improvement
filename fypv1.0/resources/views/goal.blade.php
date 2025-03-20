@@ -178,7 +178,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <select name="hobby_id" id="hobby_id" class="form-select" required>
                                         <option value="">Choose a hobby</option>
                                         @foreach($hobbies as $hobby)
-                                            <option value="{{ $hobby->id }}" {{ old('hobby_id') == $hobby->id ? 'selected' : '' }}>
+                                            <option value="{{ $hobby->id }}" 
+                                                {{ old('hobby_id') == $hobby->id ? 'selected' : '' }}
+                                                {{ $selectedHobbyId == $hobby->id ? 'selected' : '' }}>
                                                 {{ $hobby->name }} ({{ $hobby->experience_level }})
                                             </option>
                                         @endforeach
@@ -730,3 +732,4 @@ function confirmDeleteMilestone(goalId, milestoneId) {
     }
 }
 </script>
+

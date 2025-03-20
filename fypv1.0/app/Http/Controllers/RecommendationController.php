@@ -15,7 +15,7 @@ class RecommendationController extends Controller
         $this->middleware('auth');
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
         $hobbies = $user->hobbies()->with(['goals'])->get();
@@ -27,13 +27,24 @@ class RecommendationController extends Controller
         }
 
         $recommendations = $user->recommendations()->latest()->get();
-        return view('recommendation', compact('hobbies', 'recommendations'));
+
+        // Get selected hobby and goal from the request
+        $selectedHobbyId = $request->query('hobby_id');
+        $selectedGoalId = $request->query('goal_id');
+
+        // If both hobby and goal are selected, automatically generate recommendation
+        $autoGenerate = $selectedHobbyId && $selectedGoalId;
+
+        return view('recommendation', compact('hobbies', 'recommendations', 'selectedHobbyId', 'selectedGoalId', 'autoGenerate'));
     }
 
     public function getRecommendations(Request $request)
     {
         try {
             $user = auth()->user();
+            
+            // Log the incoming request for debugging
+            \Log::info('Recommendation Request:', $request->all());
             
             // Validate request
             $validated = $request->validate([
@@ -47,17 +58,16 @@ class RecommendationController extends Controller
             $hobbies = $user->hobbies()
                 ->whereIn('id', $validated['selected_hobbies'])
                 ->with(['goals' => function($query) use ($validated) {
-                    if (!empty($validated['selected_goals'])) {
-                        $query->whereIn('id', $validated['selected_goals']);
-                    }
-                    $query->with('milestones');
+                    $query->whereIn('id', $validated['selected_goals'])  // This ensures only the selected goal is included
+                          ->with('milestones');
                 }])
                 ->get();
 
             if ($hobbies->isEmpty()) {
+                \Log::warning('No hobbies found for user', ['user_id' => $user->id]);
                 return response()->json([
                     'success' => false,
-                    'error' => 'Please add some hobbies and goals first to get personalized recommendations.'
+                    'error' => 'No hobbies found. Please add some hobbies first.'
                 ]);
             }
 
@@ -68,7 +78,8 @@ class RecommendationController extends Controller
                 if ($hobby->goals->isNotEmpty()) {
                     $context .= "Goals:\n";
                     foreach ($hobby->goals as $goal) {
-                        $context .= "- Goal: {$goal->title} (Status: {$goal->status})\n";
+                        // Changed from $goal->title to $goal->goal
+                        $context .= "- Goal: {$goal->goal} (Status: {$goal->status})\n";
                         
                         // Add milestones information
                         if ($goal->milestones->isNotEmpty()) {
@@ -84,28 +95,54 @@ class RecommendationController extends Controller
                 }
             }
 
-            $prompt = "You are a professional hobby improvement coach. Based on the user's selected hobbies, goals, and milestones, provide personalized, actionable recommendations for improvement. Follow these guidelines:\n\n" .
-                     "1. **Context**:\n" . $context . "\n\n" .
-                     "2. **Recommendation Requirements**:\n" .
-                     "- Each recommendation should be specific, actionable, and tailored to the user's current progress.\n" .
-                     "- Include the following details for each recommendation:\n" .
-                     "  * **Title**: A short, descriptive title.\n" .
-                     "  * **Action Steps**: Clear steps to achieve the recommendation.\n" .
-                     "  * **Time Commitment**: Estimated time required (e.g., 30 minutes/day).\n" .
-                     "  * **Resources**: Suggested tools, books, or online resources (if applicable).\n" .
-                     "  * **Expected Outcome**: What the user can expect to achieve.\n\n" .
-                     "3. **Focus Areas**:\n" .
-                     "- **Progress on Incomplete Milestones**: Provide steps to complete pending milestones.\n" .
-                     "- **New Milestones**: Suggest new milestones if the current ones are too easy or outdated.\n" .
-                     "- **Motivation & Consistency**: Offer tips to stay motivated and consistent.\n" .
-                     "- **Skill Development**: Recommend techniques or resources to improve specific skills.\n\n" .
-                     "4. **Tone & Style**:\n" .
-                     "- Use a friendly and encouraging tone.\n" .
-                     "- Keep the language simple and easy to understand.\n\n" .
-                     "5. **Output Format**:\n" .
-                     "- Provide the recommendations in a numbered list.\n" .
-                     "- Each recommendation should follow the structure above.\n\n" .
-                     "Now, generate the recommendations based on the provided context. At The first need showing the hobby, goals, milestone, and exexperience_level of user. And remove ** and bolding the important sentence";
+            // Log the context for debugging
+            \Log::info('AI Context:', ['context' => $context]);
+
+            $prompt = "
+            You are a professional hobby improvement coach. Based on the user's selected hobbies, goals, and milestones, provide personalized, actionable recommendations for improvement. Follow these guidelines:
+            
+            1. **Context**:  
+               - Display the user's hobby, goal, milestones, and experience level at the beginning.  
+               - Example format:  
+                 $context
+            
+            2. **Recommendation Requirements**:  
+               - Each recommendation must be specific, actionable, and tailored to the user's current progress.  
+               - Include the following details for each recommendation:  
+                 - **Title**: A short, descriptive title.  
+                 - **Action Steps**: Clear, step-by-step instructions to achieve the recommendation.  
+                 - **Time Commitment**: Estimated time required (e.g., 30 minutes/day, 2 hours/week).  
+                 - **Resources**: Suggested tools, books, online courses, or other resources (if applicable).  
+                 - **Expected Outcome**: What the user can expect to achieve by following the recommendation.  
+            
+            3. **Focus Areas**:  
+               - **Progress on Incomplete Milestones**: Provide actionable steps to help the user complete pending milestones.  
+               - **New Milestones**: Suggest new milestones if the current ones are too easy, outdated, or already completed.  
+               - **Motivation & Consistency**: Offer practical tips to help the user stay motivated and consistent in their practice.  
+               - **Skill Development**: Recommend techniques, exercises, or resources to improve specific skills related to the hobby.  
+            
+            4. **Tone & Style**:  
+               - Use a friendly, encouraging, and professional tone.  
+               - Keep the language simple, clear, and easy to understand.  
+               - Avoid jargon unless necessary, and explain any technical terms.  
+            
+            5. **Output Format**:  
+               - Start by displaying the user's hobby, goal, milestones, and experience level in a clear format.  
+               - Provide recommendations in a numbered list.  
+               - Each recommendation should follow this structure:  
+                 1. **Title**: [Title of the recommendation]  
+                    - **Action Steps**: [Step-by-step instructions]  
+                    - **Time Commitment**: [Estimated time]  
+                    - **Resources**: [Suggested resources]  
+                    - **Expected Outcome**: [What the user will achieve]  
+            
+            6. **Additional Notes**:  
+               - If the user's milestones are too vague, suggest more specific and measurable milestones.  
+               - If the user is struggling with motivation, include tips on setting small, achievable goals and tracking progress.  
+               - If the user is advanced, focus on refining skills, exploring new techniques, or tackling challenging projects.  
+            
+            Now, generate the recommendations based on the provided context. Ensure the output is clear, actionable, and tailored to the user's needs.
+            And remove ** and bolding the important sentence";
 
             $client = new Client([
                 'verify' => false,
@@ -136,13 +173,15 @@ class RecommendationController extends Controller
 
             $result = json_decode($response->getBody(), true);
 
-            // Log the response for debugging
+            // Log the API response for debugging
             \Log::info('API Response:', ['result' => $result]);
 
             if (isset($result['result']) && $result['status'] === true) {
-                // Save the raw recommendation content
+                // Save the recommendation
                 $recommendation = Recommendation::create([
                     'user_id' => $user->id,
+                    'hobby_id' => $validated['selected_hobbies'][0],
+                    'goal_id' => $validated['selected_goals'][0],
                     'content' => $result['result']
                 ]);
 

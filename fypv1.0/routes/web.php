@@ -103,9 +103,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/community/{community}/react', [CommunityController::class, 'react'])->name('community.react');
     Route::post('/community/{community}/save', [CommunityController::class, 'toggleSave'])->name('community.save');
 
-    // Recommendations
-    Route::get('/recommendation', [RecommendationController::class, 'index'])->name('recommendation');
-    Route::post('/recommendation/get', [RecommendationController::class, 'getRecommendations'])->name('recommendation.get');
+    // Recommendation routes
+    Route::get('/recommendation', [App\Http\Controllers\RecommendationController::class, 'index'])->name('recommendation');
+    Route::post('/recommendation/get', [App\Http\Controllers\RecommendationController::class, 'getRecommendations'])->name('recommendation.get');
     Route::delete('/recommendations/{recommendation}', [RecommendationController::class, 'destroy'])->name('recommendations.destroy');
 
     // Admin Routes
@@ -159,4 +159,6 @@ Route::get('/api/goals/{goal}/milestones', function ($goal) {
         })
     ]);
 });
+
+
 

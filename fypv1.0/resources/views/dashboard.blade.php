@@ -86,14 +86,19 @@
                                             </div>
                                             <div class="d-flex align-items-center">
                                                 <div class="btn-group me-3">
+                                                    <a href="{{ route('goals.index', ['hobby_id' => $hobby->id]) }}" 
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-plus-circle"></i> New Goal
+                                                    </a>
                                                     <button class="btn btn-sm btn-outline-primary" 
                                                             data-bs-toggle="modal" 
                                                             data-bs-target="#editHobbyModal{{ $hobby->id }}">
-                                                        <i class="bi bi-pencil"></i>
+                                                        <i class="bi bi-pencil"></i> Edit
                                                     </button>
-                                                    <button class="btn btn-sm btn-outline-danger delete-hobby-btn" 
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-outline-danger delete-hobby-btn"
                                                             data-hobby-id="{{ $hobby->id }}">
-                                                        <i class="bi bi-trash"></i>
+                                                        <i class="bi bi-trash"></i> Delete
                                                     </button>
                                                 </div>
                                                 <button class="btn btn-sm btn-link text-decoration-none" 
@@ -123,7 +128,7 @@
                                             @if($hobby->goals->isEmpty())
                                                 <p class="text-center text-muted my-3">No goals set for this hobby yet.</p>
                                                 <div class="text-center">
-                                                    <a href="{{ route('goals.create') }}" class="btn btn-sm btn-primary">
+                                                    <a href="{{ route('goals.index', ['hobby_id' => $hobby->id]) }}" class="btn btn-sm btn-primary">
                                                         <i class="bi bi-plus-circle"></i> Add Goal
                                                     </a>
                                                 </div>
@@ -135,23 +140,60 @@
                                                                 <div>
                                                                     <i class="bi {{ $goal->status === 'completed' ? 'bi-check-circle-fill text-success' : 'bi-circle' }} me-2"></i>
                                                                     {{ $goal->goal }}
+                                                                    <small class="text-muted ms-2">
+                                                                        <a href="/recommendation?hobby_id={{ $hobby->id }}&goal_id={{ $goal->id }}" 
+                                                                           class="text-decoration-none text-primary">
+                                                                            <i class="bi bi-lightbulb"></i> Get Recommendation
+                                                                        </a>
+                                                                    </small>
                                                                 </div>
-                                                                <span class="badge {{ $goal->status === 'completed' ? 'bg-success' : 'bg-primary' }}">
-                                                                    {{ ucfirst($goal->status) }}
-                                                                </span>
+                                                                <div class="btn-group">
+                                                                    <button class="btn btn-sm btn-outline-primary" 
+                                                                            data-bs-toggle="modal" 
+                                                                            data-bs-target="#editGoalModal_{{ $hobby->id }}_{{ $goal->id }}">
+                                                                        <i class="bi bi-pencil"></i>
+                                                                    </button>
+                                                                    <button type="button" 
+                                                                            class="btn btn-sm btn-outline-danger delete-goal-btn"
+                                                                            data-goal-id="{{ $goal->id }}">
+                                                                        <i class="bi bi-trash"></i>
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                             @if($goal->milestones->isNotEmpty())
                                                                 <div class="ms-4 mt-2">
                                                                     @foreach($goal->milestones as $milestone)
-                                                                        <div class="d-flex align-items-center mb-1">
-                                                                            <i class="bi {{ $milestone->completed ? 'bi-check-circle-fill text-success' : 'bi-circle' }} me-2 small"></i>
-                                                                            <small class="{{ $milestone->completed ? 'text-decoration-line-through' : '' }}">
+                                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                            <div>
+                                                                                <i class="bi {{ $milestone->is_completed ? 'bi-check-circle-fill text-success' : 'bi-circle' }} me-2"></i>
                                                                                 {{ $milestone->description }}
-                                                                            </small>
+                                                                                <small class="text-muted ms-2">Due: {{ $milestone->due_date->format('Y-m-d') }}</small>
+                                                                            </div>
+                                                                            <div class="btn-group">
+                                                                                <button class="btn btn-sm btn-outline-primary"
+                                                                                        data-bs-toggle="modal"
+                                                                                        data-bs-target="#editMilestoneModal_{{ $goal->id }}_{{ $milestone->id }}">
+                                                                                    <i class="bi bi-pencil"></i>
+                                                                                </button>
+                                                                                <button type="button" 
+                                                                                        class="btn btn-sm btn-outline-danger delete-milestone-btn"
+                                                                                        data-goal-id="{{ $goal->id }}"
+                                                                                        data-milestone-id="{{ $milestone->id }}">
+                                                                                    <i class="bi bi-trash"></i>
+                                                                                </button>
+                                                                            </div>
                                                                         </div>
                                                                     @endforeach
                                                                 </div>
                                                             @endif
+                                                            <small class="text-muted ms-2">
+                                                                <a href="#" 
+                                                                   class="text-decoration-none text-success"
+                                                                   data-bs-toggle="modal" 
+                                                                   data-bs-target="#addMilestoneModal_{{ $hobby->id }}_{{ $goal->id }}">
+                                                                    <i class="bi bi-plus-circle"></i> Add Milestone
+                                                                </a>
+                                                            </small>
                                                         </div>
                                                     @endforeach
                                                 </div>
@@ -174,12 +216,6 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{{ route('goals.index') }}" class="btn btn-outline-primary">
-                            <i class="bi bi-bullseye"></i> Set New Goal
-                        </a>
-                        <a href="{{ route('recommendation') }}" class="btn btn-outline-info">
-                            <i class="bi bi-lightbulb"></i> Get Recommendations
-                        </a>
                         <a href="{{ route('community.index') }}" class="btn btn-outline-success">
                             <i class="bi bi-people"></i> Join Community
                         </a>
@@ -270,40 +306,264 @@
     </div>
 @endforeach
 
-<!-- Delete Form -->
+@foreach($hobbies as $hobby)
+    @foreach($hobby->goals as $goal)
+        <!-- Goal Edit Modal -->
+        <div class="modal fade" id="editGoalModal_{{ $hobby->id }}_{{ $goal->id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Goal for {{ $hobby->name }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form action="{{ route('goals.update', $goal->id) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <div class="modal-body">
+                            <input type="hidden" name="hobby_id" value="{{ $hobby->id }}">
+                            <div class="mb-3">
+                                <label class="form-label">Goal</label>
+                                <input type="text" name="goal" class="form-control" value="{{ $goal->goal }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Deadline</label>
+                                <input type="date" name="deadline" class="form-control" value="{{ $goal->deadline->format('Y-m-d') }}" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endforeach
+@endforeach
+
+<!-- Add Milestone Modals -->
+@foreach($hobbies as $hobby)
+    @foreach($hobby->goals as $goal)
+        <div class="modal fade" id="addMilestoneModal_{{ $hobby->id }}_{{ $goal->id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add New Milestone for "{{ $goal->goal }}"</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form action="{{ route('goals.milestones.store', $goal->id) }}" method="POST">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <input type="text" name="description" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Due Date</label>
+                                <input type="date" name="due_date" class="form-control" 
+                                       min="{{ date('Y-m-d') }}" 
+                                       max="{{ $goal->deadline->format('Y-m-d') }}" 
+                                       required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Add Milestone</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endforeach
+@endforeach
+
+<!-- Edit Milestone Modals -->
+@foreach($hobbies as $hobby)
+    @foreach($hobby->goals as $goal)
+        @foreach($goal->milestones as $milestone)
+            <div class="modal fade" id="editMilestoneModal_{{ $goal->id }}_{{ $milestone->id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Milestone</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <input type="text" class="form-control" 
+                                       id="editDescription_{{ $goal->id }}_{{ $milestone->id }}" 
+                                       value="{{ $milestone->description }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Due Date</label>
+                                <input type="date" class="form-control" 
+                                       id="editDueDate_{{ $goal->id }}_{{ $milestone->id }}" 
+                                       value="{{ $milestone->due_date->format('Y-m-d') }}" 
+                                       min="{{ date('Y-m-d') }}"
+                                       max="{{ $goal->deadline->format('Y-m-d') }}" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" 
+                                    onclick="updateMilestone({{ $goal->id }}, {{ $milestone->id }})">
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endforeach
+    @endforeach
+@endforeach
+
+<!-- Delete Forms -->
 <form id="deleteHobbyForm" method="POST" style="display: none;">
     @csrf
     @method('DELETE')
 </form>
 
-@section('scripts')
+<form id="deleteGoalForm" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
+
+@push('scripts')
 <script>
+    // Wait for the DOM to be fully loaded
     document.addEventListener('DOMContentLoaded', function() {
-        // Handle delete button clicks
-        document.querySelectorAll('.delete-hobby-btn').forEach(button => {
+        // Debug logging
+        console.log('Script loaded');
+
+        // Hobby delete buttons
+        const hobbyDeleteButtons = document.querySelectorAll('.delete-hobby-btn');
+        console.log('Found hobby delete buttons:', hobbyDeleteButtons.length);
+        
+        hobbyDeleteButtons.forEach(button => {
             button.addEventListener('click', function(e) {
                 e.preventDefault();
-                e.stopPropagation();
-                confirmDelete(this.dataset.hobbyId);
+                const hobbyId = this.getAttribute('data-hobby-id');
+                console.log('Delete hobby clicked:', hobbyId);
+                if (confirm('Are you sure you want to delete this hobby? All associated goals and milestones will also be deleted.')) {
+                    const form = document.getElementById('deleteHobbyForm');
+                    form.action = `/hobbies/${hobbyId}`;
+                    console.log('Submitting form with action:', form.action);
+                    form.submit();
+                }
             });
         });
 
-        function confirmDelete(hobbyId) {
-            if (confirm('Are you sure you want to delete this hobby? All associated goals and milestones will also be deleted.')) {
-                const form = document.getElementById('deleteHobbyForm');
-                form.action = `/hobbies/${hobbyId}`;
-                form.submit();
-            }
-        }
-
-        // Auto-hide alerts after 5 seconds
-        setTimeout(function() {
-            document.querySelectorAll('.alert').forEach(alert => {
-                if (alert) {
-                    alert.style.display = 'none';
+        // Goal delete buttons
+        const goalDeleteButtons = document.querySelectorAll('.delete-goal-btn');
+        console.log('Found goal delete buttons:', goalDeleteButtons.length);
+        
+        goalDeleteButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const goalId = this.getAttribute('data-goal-id');
+                console.log('Delete goal clicked:', goalId);
+                if (confirm('Are you sure you want to delete this goal? All associated milestones will also be deleted.')) {
+                    const form = document.getElementById('deleteGoalForm');
+                    form.action = `/goals/${goalId}`;
+                    console.log('Submitting form with action:', form.action);
+                    form.submit();
                 }
             });
-        }, 5000);
+        });
     });
 </script>
-@endsection
+<script>
+function updateMilestone(goalId, milestoneId) {
+    const description = document.getElementById(`editDescription_${goalId}_${milestoneId}`).value;
+    const dueDate = document.getElementById(`editDueDate_${goalId}_${milestoneId}`).value;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+    if (!description.trim()) {
+        showAlert('Description cannot be empty', 'danger');
+        return;
+    }
+
+    if (!dueDate) {
+        showAlert('Due date is required', 'danger');
+        return;
+    }
+
+    fetch(`/goals/${goalId}/milestones/${milestoneId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            description: description,
+            due_date: dueDate
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            showAlert('Failed to update milestone', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Failed to update milestone', 'danger');
+    });
+}
+
+// Handle milestone delete button clicks
+document.querySelectorAll('.delete-milestone-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const goalId = this.dataset.goalId;
+        const milestoneId = this.dataset.milestoneId;
+        
+        if (confirm('Are you sure you want to delete this milestone?')) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+            
+            fetch(`/goals/${goalId}/milestones/${milestoneId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const milestoneElement = this.closest('.d-flex');
+                    milestoneElement.remove();
+                    showAlert('Milestone deleted successfully', 'success');
+                } else {
+                    showAlert('Failed to delete milestone', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Failed to delete milestone', 'danger');
+            });
+        }
+    });
+});
+
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild);
+
+    // Auto dismiss alert after 3 seconds
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3000);
+}
+</script>
+@endpush

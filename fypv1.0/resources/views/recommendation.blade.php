@@ -17,23 +17,18 @@
                             <select class="form-select" id="hobbySelect" name="selected_hobby" required>
                                 <option value="">Choose a hobby...</option>
                                 @foreach($hobbies as $hobby)
-                                    <option value="{{ $hobby->id }}">{{ $hobby->name }} ({{ $hobby->experience_level }})</option>
+                                    <option value="{{ $hobby->id }}" {{ $selectedHobbyId == $hobby->id ? 'selected' : '' }}>
+                                        {{ $hobby->name }} ({{ $hobby->experience_level }})
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Select Goal</label>
-                            <select class="form-select" id="goalSelect" name="selected_goal" required disabled>
+                            <select class="form-select" id="goalSelect" name="selected_goal" required>
                                 <option value="">Choose a goal...</option>
                             </select>
-
-                            <!-- Milestones Display -->
-                            <div id="milestonesContainer" class="mt-3" style="display: none;">
-                                <label class="form-label">Goal Milestones:</label>
-                                <ul class="list-group" id="milestonesList">
-                                </ul>
-                            </div>
                         </div>
 
                         <div class="text-center">
@@ -49,7 +44,7 @@
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <p class="mt-2">Generating personalized recommendations...</p>
+                    <p class="mt-2">Generating recommendations...</p>
                 </div>
 
                 <!-- Recommendations Display -->
@@ -84,37 +79,48 @@
 document.addEventListener('DOMContentLoaded', function() {
     const hobbySelect = document.getElementById('hobbySelect');
     const goalSelect = document.getElementById('goalSelect');
-    const milestonesContainer = document.getElementById('milestonesContainer');
-    const milestonesList = document.getElementById('milestonesList');
+    const selectedHobbyId = '{{ $selectedHobbyId }}';
+    const selectedGoalId = '{{ $selectedGoalId }}';
+    const autoGenerate = {{ $autoGenerate ? 'true' : 'false' }};
 
-    // Handle hobby selection
-    hobbySelect.addEventListener('change', async function() {
-        goalSelect.disabled = true;
-        goalSelect.innerHTML = '<option value="">Choose a goal...</option>';
-        milestonesContainer.style.display = 'none';
-        
-        if (this.value) {
-            try {
-                const response = await fetch(`/api/hobbies/${this.value}/goals`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch goals');
+    // Load goals when hobby is selected
+    async function loadGoals(hobbyId) {
+        try {
+            const response = await fetch(`/api/hobbies/${hobbyId}/goals`);
+            if (!response.ok) throw new Error('Failed to fetch goals');
+            const goals = await response.json();
+            
+            goalSelect.innerHTML = '<option value="">Choose a goal...</option>';
+            goals.forEach(goal => {
+                const option = new Option(goal.goal, goal.id);
+                if (goal.id == selectedGoalId) {
+                    option.selected = true;
                 }
-                const goals = await response.json();
-                
-                if (goals && goals.length > 0) {
-                    goals.forEach(goal => {
-                        // Updated to use 'goal' instead of 'title' to match your model
-                        const option = new Option(goal.goal, goal.id);
-                        goalSelect.add(option);
-                    });
-                    goalSelect.disabled = false;
-                } else {
-                    goalSelect.innerHTML = '<option value="">No goals available</option>';
-                }
-            } catch (error) {
-                console.error('Error fetching goals:', error);
-                alert('Error loading goals');
+                goalSelect.add(option);
+            });
+            goalSelect.disabled = false;
+
+            // If this is auto-generate mode and we have a selected goal
+            if (autoGenerate && selectedGoalId) {
+                document.getElementById('getRecommendations').click();
             }
+        } catch (error) {
+            console.error('Error loading goals:', error);
+        }
+    }
+
+    // Initial load if hobby is selected
+    if (selectedHobbyId) {
+        loadGoals(selectedHobbyId);
+    }
+
+    // Event listener for hobby selection
+    hobbySelect.addEventListener('change', function() {
+        if (this.value) {
+            loadGoals(this.value);
+        } else {
+            goalSelect.innerHTML = '<option value="">Choose a goal...</option>';
+            goalSelect.disabled = true;
         }
     });
 
@@ -155,11 +161,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle recommendation request
     document.getElementById('getRecommendations').addEventListener('click', async function() {
-        if (!hobbySelect.value) {
+        const hobbyId = hobbySelect.value;
+        const goalId = goalSelect.value;
+
+        if (!hobbyId) {
             alert('Please select a hobby');
             return;
         }
-        if (!goalSelect.value) {
+        if (!goalId) {
             alert('Please select a goal');
             return;
         }
@@ -177,8 +186,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    selected_hobbies: [hobbySelect.value],
-                    selected_goals: [goalSelect.value]
+                    selected_hobbies: [hobbyId],
+                    selected_goals: [goalId]
                 })
             });
 
@@ -188,6 +197,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 const newCard = document.createElement('div');
                 newCard.className = 'card mb-3 recommendation-card';
                 newCard.dataset.id = data.recommendation_id;
+                
+                // Convert newlines to <br> tags for proper formatting
+                const formattedContent = data.recommendations.replace(/\n/g, '<br>');
+                
                 newCard.innerHTML = `
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
@@ -197,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </button>
                         </div>
                         <div class="recommendation-content">
-                            ${data.recommendations}
+                            ${formattedContent}
                         </div>
                     </div>
                 `;
@@ -205,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const savedRecommendations = document.getElementById('savedRecommendations');
                 savedRecommendations.insertBefore(newCard, savedRecommendations.firstChild);
             } else {
-                alert('Failed to generate recommendations');
+                alert(data.error || 'Failed to generate recommendations');
             }
         } catch (error) {
             console.error('Error:', error);

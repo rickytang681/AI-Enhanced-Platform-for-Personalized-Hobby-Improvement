@@ -15,7 +15,16 @@ class HobbyController extends Controller
 
     public function index()
     {
-        $hobbies = auth()->user()->hobbies()->orderBy('created_at', 'desc')->get();
+        $hobbies = auth()->user()->hobbies()
+            ->withCount(['goals', 'goals as completed_goals_count' => function ($query) {
+                $query->where('status', 'completed');
+            }])
+            ->with(['goals' => function ($query) {
+                $query->with('milestones')
+                      ->orderBy('created_at', 'desc');
+            }])
+            ->get();
+
         return view('hobbies.index', compact('hobbies'));
     }
 
@@ -79,3 +88,4 @@ class HobbyController extends Controller
         }
     }
 }
+
