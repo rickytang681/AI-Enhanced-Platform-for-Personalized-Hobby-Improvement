@@ -21,6 +21,8 @@ return new class extends Migration
             $table->integer('likes')->default(0);
             $table->integer('dislikes')->default(0);
             $table->string('file_path')->nullable();
+            $table->float('average_rating')->default(0);
+            $table->integer('rating_count')->default(0);
             $table->timestamps();
         });
     }

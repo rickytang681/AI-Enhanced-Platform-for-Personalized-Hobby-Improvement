@@ -62,6 +62,9 @@ Route::middleware(['auth'])->group(function () {
         
         // Toggle milestone completion status
         Route::post('goals/{goal}/milestones/{milestone}/toggle', [MilestoneController::class, 'toggle']);
+        Route::patch('goals/{goal}/milestones/{milestone}/toggle', 
+            [MilestoneController::class, 'toggle'])
+            ->name('goals.milestones.toggle');
     });
 
     // Profile
@@ -71,18 +74,20 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Library
-    Route::controller(LibraryController::class)->group(function () {
+    Route::controller(LibraryController::class)->middleware(['auth'])->group(function () {
         Route::get('/library', 'index')->name('library');
         Route::post('/library', 'store')->name('library.store');
         Route::post('/library/{item}/react', 'react')->name('library.react');
         Route::post('/library/{item}/comment', 'addComment')->name('library.comment');
-        Route::post('/library/{item}/rate', [LibraryController::class, 'rate'])->name('library.rate');
+        Route::post('/library/{item}/rate', 'rate')->name('library.rate');
         Route::post('/library/{item}/save', 'toggleSave')->name('library.save');
         Route::get('/library/{item}/comments', 'getComments')->name('library.comments');
         Route::get('/library/{item}/download', 'download')->name('library.download');
         Route::get('/library/my-resources', 'getMyResources')->name('library.my-resources');
-        Route::put('/library/{item}/update', 'updateResource')->name('library.update-resource');
-        Route::delete('/library/{item}/delete', 'deleteResource')->name('library.delete-resource');
+        
+        // Add these new routes for resource management
+        Route::put('/library/{item}/update', 'updateResource')->name('library.update');
+        Route::delete('/library/{item}/delete', 'deleteResource')->name('library.delete');
     });
 
     // Community Routes
@@ -159,6 +164,10 @@ Route::get('/api/goals/{goal}/milestones', function ($goal) {
         })
     ]);
 });
+
+
+
+
 
 
 

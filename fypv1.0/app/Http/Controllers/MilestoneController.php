@@ -104,30 +104,19 @@ class MilestoneController extends Controller
 
     public function toggle(Goal $goal, Milestone $milestone)
     {
-        try {
-            $milestone->update(['completed' => request('completed')]);
-            
-            // Recalculate goal progress
-            $totalMilestones = $goal->milestones()->count();
-            $completedMilestones = $goal->milestones()->where('completed', true)->count();
-            $progress = $totalMilestones > 0 ? round(($completedMilestones / $totalMilestones) * 100) : 0;
-            
-            // Update goal progress and status
-            $goal->update([
-                'progress' => $progress,
-                'status' => $progress == 100 ? 'completed' : 'in-progress'
-            ]);
-            
-            return response()->json([
-                'success' => true,
-                'progress' => $progress,
-                'status' => $goal->status
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to update milestone status'
-            ], 500);
+        // Ensure the user owns this milestone
+        if ($goal->user_id !== auth()->id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
         }
+
+        // Toggle the completion status
+        $milestone->completed = !$milestone->completed;
+        $milestone->save();
+
+        return response()->json([
+            'success' => true,
+            'completed' => $milestone->completed
+        ]);
     }
 }
+

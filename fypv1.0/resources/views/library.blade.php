@@ -233,12 +233,12 @@
 
                                         <!-- Reactions -->
                                         <div class="reactions">
-                                            <button class="btn btn-sm {{ $item->userReaction && $item->userReaction->type === 'like' ? 'btn-success' : 'btn-outline-success' }} reaction-btn" 
+                                            <button class="btn btn-sm {{ $item->currentUserReaction && $item->currentUserReaction->reaction_type === 'like' ? 'btn-success' : 'btn-outline-success' }} reaction-btn" 
                                                     data-item="{{ $item->id }}" 
                                                     data-type="like">
                                                 👍 <span class="likes-count">{{ $item->likes }}</span>
                                             </button>
-                                            <button class="btn btn-sm {{ $item->userReaction && $item->userReaction->type === 'dislike' ? 'btn-danger' : 'btn-outline-danger' }} reaction-btn" 
+                                            <button class="btn btn-sm {{ $item->currentUserReaction && $item->currentUserReaction->reaction_type === 'dislike' ? 'btn-danger' : 'btn-outline-danger' }} reaction-btn" 
                                                     data-item="{{ $item->id }}" 
                                                     data-type="dislike">
                                                 👎 <span class="dislikes-count">{{ $item->dislikes }}</span>
@@ -610,8 +610,15 @@
         
         $.ajax({
             url: `/library/${resourceId}/update`,
-            type: 'PUT',
-            data: $(this).serialize(),
+            type: 'POST',  // Changed from PUT to POST
+            data: {
+                _method: 'PUT',  // Add this for Laravel method spoofing
+                _token: '{{ csrf_token() }}',  // Add CSRF token
+                title: $('#edit_title').val(),
+                description: $('#edit_description').val(),
+                category: $('#edit_category').val(),
+                subcategory: $('#edit_subcategory').val()
+            },
             success: function(response) {
                 if (response.success) {
                     $('#editResourceModal').modal('hide');
@@ -619,6 +626,9 @@
                     loadMyResources();
                     alert('Resource updated successfully');
                 }
+            },
+            error: function(xhr) {
+                alert('Error updating resource: ' + xhr.responseText);
             }
         });
     });
@@ -646,4 +656,7 @@
 </script>
 @endpush
 @endsection
+
+
+
 

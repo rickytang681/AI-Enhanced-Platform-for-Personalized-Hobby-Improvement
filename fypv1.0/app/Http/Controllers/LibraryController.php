@@ -7,6 +7,7 @@ use App\Models\LibraryReaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\ValidationException;
 
 class LibraryController extends Controller
 {
@@ -114,14 +115,9 @@ class LibraryController extends Controller
                 'file' => [
                     'nullable',
                     'file',
-                    'max:10240', // 10MB
-                    'mimes:pdf,doc,docx,txt,mp4,zip,rar', // Using mimes instead of mimetypes for better compatibility
+                    'max:10240',
+                    'mimes:pdf,doc,docx,txt,mp4,zip,rar',
                 ],
-            ], [
-                'file.max' => 'The file size must not exceed 10MB.',
-                'file.mimes' => 'The file must be one of the following types: PDF, DOC, DOCX, TXT, MP4, ZIP, RAR.',
-                'new_category.string' => 'The new category must be text only.',
-                'new_category.max' => 'The new category name cannot exceed 50 characters.'
             ]);
 
             // Handle new category
@@ -198,25 +194,14 @@ class LibraryController extends Controller
             return redirect()->route('library')
                 ->with('success', 'Resource uploaded successfully!');
 
-        } catch (\Exception $e) {
-            \Log::error('Library store error: ' . $e->getMessage(), [
-                'request' => $request->all(),
-                'user' => auth()->id(),
-                'file_info' => $request->hasFile('file') ? [
-                    'original_name' => $request->file('file')->getClientOriginalName(),
-                    'mime_type' => $request->file('file')->getMimeType(),
-                    'size' => $request->file('file')->getSize()
-                ] : null
-            ]);
-
-            // Clean up uploaded file if exists
-            if (isset($path)) {
-                Storage::disk('public')->delete($path);
-            }
-            
+        } catch (ValidationException $e) {
             return redirect()->back()
-                ->withInput()
-                ->withErrors(['error' => 'Upload failed: ' . $e->getMessage()]);
+                ->withErrors($e->errors())
+                ->withInput();
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withErrors(['error' => 'Upload failed: ' . $e->getMessage()])
+                ->withInput();
         }
     }
 
@@ -436,3 +421,5 @@ class LibraryController extends Controller
         ]);
     }
 }
+
+

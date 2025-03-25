@@ -16,18 +16,10 @@ return new class extends Migration
             $table->timestamps();
             $table->unique(['user_id', 'library_item_id']);
         });
-
-        Schema::table('library_items', function (Blueprint $table) {
-            $table->float('average_rating')->default(0);
-            $table->integer('rating_count')->default(0);
-        });
     }
 
     public function down()
     {
         Schema::dropIfExists('library_ratings');
-        Schema::table('library_items', function (Blueprint $table) {
-            $table->dropColumn(['average_rating', 'rating_count']);
-        });
     }
 }; 

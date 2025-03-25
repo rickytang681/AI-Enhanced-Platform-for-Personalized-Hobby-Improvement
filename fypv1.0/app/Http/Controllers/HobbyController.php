@@ -52,6 +52,11 @@ class HobbyController extends Controller
 
     public function update(Request $request, Hobby $hobby)
     {
+        // Add authorization check
+        if ($hobby->user_id !== auth()->id()) {
+            return redirect()->back()->with('error', 'Unauthorized action.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
@@ -88,4 +93,5 @@ class HobbyController extends Controller
         }
     }
 }
+
 
