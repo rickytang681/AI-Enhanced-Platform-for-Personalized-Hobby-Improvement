@@ -7,12 +7,12 @@ use Illuminate\Http\Request;
 
 class AdminMiddleware
 {
-    public function handle(Request $request, Closure $next)
+    public function handle($request, Closure $next)
     {
-        if (auth()->check() && auth()->user()->role === 'admin') {
-            return $next($request);
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        return redirect('dashboard')->with('error', 'Unauthorized access. Admin only.');
+        return $next($request);
     }
 } 

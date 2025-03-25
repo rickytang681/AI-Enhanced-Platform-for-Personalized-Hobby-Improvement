@@ -108,14 +108,12 @@ class AuthenticationTest extends TestCase
 
     public function test_regular_user_cannot_access_system_page()
     {
-        // Create and login as regular user
         $user = User::factory()->create([
             'role' => 'user'
         ]);
 
         $response = $this->actingAs($user)->get('/system');
-        $response->assertStatus(302);  // Check for redirect instead of 403
-        $response->assertRedirect('/dashboard');  // Updated to match the actual redirect
+        $response->assertStatus(403);  // Changed to expect 403 Forbidden instead of redirect
     }
 
     public function test_login_with_incorrect_password()
