@@ -331,17 +331,18 @@ class CommunityController extends Controller
         }
     }
 
-    public function updatePost(Request $request, Community $community)
+    public function update(Request $request, Community $community)
     {
-        // Check if user owns the post
-        if ($community->user_id !== auth()->id()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized'
-            ], 403);
-        }
-
         try {
+            // Authorization check
+            if ($request->user()->id !== $community->user_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized'
+                ], 403);
+            }
+
+            // Validate the request
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
                 'content' => 'required|string',
@@ -349,6 +350,7 @@ class CommunityController extends Controller
                 'tag' => 'required|string|max:50',
             ]);
 
+            // Update the post
             $community->update($validated);
 
             return response()->json([
@@ -356,11 +358,19 @@ class CommunityController extends Controller
                 'message' => 'Post updated successfully',
                 'post' => $community
             ]);
-        } catch (\Exception $e) {
-            \Log::error('Error updating post: ' . $e->getMessage());
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update post'
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Post update error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update post',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
@@ -395,3 +405,4 @@ class CommunityController extends Controller
         }
     }
 }
+

@@ -71,3 +71,4 @@ class Community extends Model
         return $this->savedByUsers()->where('user_id', $user->id)->exists();
     }
 }
+

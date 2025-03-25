@@ -96,17 +96,16 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/community', [CommunityController::class, 'store'])->name('community.store');
         Route::get('/community/my-posts', [CommunityController::class, 'getMyPosts'])->name('community.my-posts');
         Route::get('/community/{community}', [CommunityController::class, 'show'])->name('community.show');
-        Route::post('/community/{community}/save', [CommunityController::class, 'toggleSave'])->name('community.save');
+        Route::put('/community/{community}', [CommunityController::class, 'updatePost'])->name('community.update');
+        Route::delete('/community/{community}', [CommunityController::class, 'destroy'])->name('community.destroy');
         Route::post('/community/{community}/comment', [CommunityController::class, 'addComment'])->name('community.comment');
         Route::get('/community/{community}/comments', [CommunityController::class, 'getComments'])->name('community.comments');
         Route::post('/community/{community}/react', [CommunityController::class, 'react'])->name('community.react');
-        Route::delete('/community/{community}', [CommunityController::class, 'destroy'])->name('community.destroy');
-        Route::put('/community/{community}/update', [CommunityController::class, 'updatePost'])->name('community.update-post');
+        Route::post('/community/{community}/save', [CommunityController::class, 'toggleSave'])->name('community.save');
+        Route::put('/community/{community}/update', [CommunityController::class, 'update'])
+            ->name('community.update')
+            ->where('community', '[0-9]+');
     });
-
-    // Additional community routes
-    Route::post('/community/{community}/react', [CommunityController::class, 'react'])->name('community.react');
-    Route::post('/community/{community}/save', [CommunityController::class, 'toggleSave'])->name('community.save');
 
     // Recommendation routes
     Route::get('/recommendation', [App\Http\Controllers\RecommendationController::class, 'index'])->name('recommendation');
@@ -164,6 +163,9 @@ Route::get('/api/goals/{goal}/milestones', function ($goal) {
         })
     ]);
 });
+
+
+
 
 
 

@@ -13,9 +13,13 @@ class CommunityFactory extends Factory
     {
         return [
             'user_id' => \App\Models\User::factory(),
-            'content' => $this->faker->paragraph,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'title' => $this->faker->sentence(),
+            'content' => $this->faker->paragraph(),
+            'post_type' => $this->faker->randomElement(['discussion', 'question', 'experience']),
+            'tag' => $this->faker->randomElement(['General', 'Help', 'Discussion']),
+            'cover_image' => null
         ];
     }
 }
+
+

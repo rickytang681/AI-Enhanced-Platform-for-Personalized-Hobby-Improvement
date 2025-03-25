@@ -536,12 +536,22 @@ $(document).ready(function() {
         e.preventDefault();
         const postId = $('#edit_post_id').val();
         
+        // Create FormData object
+        const formData = {
+            _token: $('meta[name="csrf-token"]').attr('content'),
+            title: $('#edit_title').val(),
+            content: $('#edit_content').val(),
+            post_type: $('#edit_post_type').val(),
+            tag: $('#edit_tag').val()
+        };
+        
         $.ajax({
             url: `/community/${postId}/update`,
             type: 'PUT',
-            data: $(this).serialize(),
+            data: formData,
             headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'Accept': 'application/json'
             },
             success: function(response) {
                 if (response.success) {
@@ -552,8 +562,19 @@ $(document).ready(function() {
                     location.reload();
                 }
             },
-            error: function() {
-                alert('Error updating post');
+            error: function(xhr) {
+                console.error('Update error:', xhr.responseText);
+                let errorMessage = 'Error updating post';
+                
+                if (xhr.responseJSON) {
+                    if (xhr.responseJSON.errors) {
+                        errorMessage = Object.values(xhr.responseJSON.errors).flat().join('\n');
+                    } else if (xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                }
+                
+                alert(errorMessage);
             }
         });
     });
@@ -591,3 +612,5 @@ $(document).ready(function() {
 </script>
 @endpush
 @endsection
+
+
