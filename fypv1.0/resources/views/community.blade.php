@@ -608,9 +608,35 @@ $(document).ready(function() {
     $(function () {
         $('[data-bs-toggle="tooltip"]').tooltip();
     });
+
+    // Handle tag selection
+    $('#tagSelect').on('change', function() {
+        const newTagInput = $('#newTag');
+        if ($(this).val() === 'new') {
+            newTagInput.show().prop('required', true);
+            $(this).prop('required', false);
+        } else {
+            newTagInput.hide().prop('required', false);
+            $(this).prop('required', true);
+        }
+    });
+
+    // Handle form submission
+    $('form').on('submit', function(e) {
+        const tagSelect = $('#tagSelect');
+        const newTagInput = $('#newTag');
+        
+        if (tagSelect.val() === 'new' && !newTagInput.val().trim()) {
+            e.preventDefault();
+            alert('Please enter a new tag name');
+            newTagInput.focus();
+        }
+    });
 });
 </script>
 @endpush
 @endsection
+
+
 
 
