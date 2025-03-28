@@ -13,8 +13,12 @@ php artisan storage:link
 
 + composer create-project laravel/laravel:8.* practical6
 + composer require laravel/ui --dev
-+ php artisan ui vue --auth
+- php artisan ui vue --auth
++ php artisan ui vue
+if exists enter no
 + npm install && npm run dev
+
+select .env.example file remove the .example
 
 If prompted, rerun 
 + npm run dev
