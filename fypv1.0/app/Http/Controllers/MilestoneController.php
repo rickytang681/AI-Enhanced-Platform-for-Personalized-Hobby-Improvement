@@ -44,20 +44,32 @@ class MilestoneController extends Controller
             'due_date' => [
                 'required',
                 'date',
-                'after_or_equal:today',
                 function ($attribute, $value, $fail) use ($goal) {
                     if (strtotime($value) > strtotime($goal->deadline)) {
                         $fail('Milestone date cannot be later than the goal deadline.');
                     }
                 },
             ],
+            'completed' => 'boolean|nullable',
         ]);
 
         $milestone->update($validated);
 
+        // Recalculate goal progress
+        $totalMilestones = $goal->milestones()->count();
+        $completedMilestones = $goal->milestones()->where('completed', true)->count();
+        $progress = $totalMilestones > 0 ? round(($completedMilestones / $totalMilestones) * 100) : 0;
+        
+        $goal->update([
+            'progress' => $progress,
+            'status' => $progress == 100 ? 'completed' : 'in-progress'
+        ]);
+
         return response()->json([
             'success' => true,
-            'message' => 'Milestone updated successfully'
+            'message' => 'Milestone updated successfully',
+            'progress' => $progress,
+            'status' => $goal->status
         ]);
     }
 
@@ -102,21 +114,65 @@ class MilestoneController extends Controller
         }
     }
 
-    public function toggle(Goal $goal, Milestone $milestone)
+    public function toggle(Request $request, Goal $goal, Milestone $milestone)
     {
-        // Ensure the user owns this milestone
-        if ($goal->user_id !== auth()->id()) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+        try {
+            // Ensure the user owns this milestone
+            if ($goal->user_id !== auth()->id()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
+
+            // Verify that the milestone belongs to the goal
+            if ($milestone->goal_id !== $goal->id) {
+                return response()->json(['success' => false, 'message' => 'Milestone does not belong to this goal'], 400);
+            }
+
+            // Toggle the completion status or use the value from request
+            if ($request->has('completed')) {
+                $milestone->completed = $request->boolean('completed');
+            } else {
+                $milestone->completed = !$milestone->completed;
+            }
+            
+            // Save the milestone
+            $milestone->save();
+
+            // Calculate new progress based on completed milestones
+            $totalMilestones = $goal->milestones()->count();
+            $completedMilestones = $goal->milestones()->where('completed', true)->count();
+            
+            $progress = $totalMilestones > 0 ? round(($completedMilestones / $totalMilestones) * 100) : 0;
+            
+            // Update goal progress and status
+            $goal->progress = $progress;
+            $goal->status = $progress == 100 ? 'completed' : 'in-progress';
+            $goal->save();
+
+            // Log for debugging
+            \Log::info("Milestone toggle - Goal ID: {$goal->id}, Progress: {$progress}%, Status: {$goal->status}, Milestone ID: {$milestone->id}, Completed: {$milestone->completed}");
+
+            return response()->json([
+                'success' => true,
+                'completed' => $milestone->completed,
+                'progress' => $progress,
+                'status' => $goal->status
+            ]);
+        } catch (\Exception $e) {
+            \Log::error("Error toggling milestone: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while updating the milestone: ' . $e->getMessage()
+            ], 500);
         }
-
-        // Toggle the completion status
-        $milestone->completed = !$milestone->completed;
-        $milestone->save();
-
-        return response()->json([
-            'success' => true,
-            'completed' => $milestone->completed
-        ]);
     }
 }
+
+
+
+
+
+
+
+
+
 

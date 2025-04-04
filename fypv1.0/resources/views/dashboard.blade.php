@@ -141,6 +141,9 @@
                                                                     <i class="bi {{ $goal->status === 'completed' ? 'bi-check-circle-fill text-success' : 'bi-circle' }} me-2"></i>
                                                                     {{ $goal->goal }}
                                                                     <small class="text-muted ms-2">
+                                                                        <i class="bi bi-calendar-event"></i> Due: {{ $goal->deadline->format('Y-m-d') }}
+                                                                    </small>
+                                                                    <small class="text-muted ms-2">
                                                                         <a href="/recommendation?hobby_id={{ $hobby->id }}&goal_id={{ $goal->id }}" 
                                                                            class="text-decoration-none text-primary">
                                                                             <i class="bi bi-lightbulb"></i> Get Recommendation
@@ -160,18 +163,23 @@
                                                                     </button>
                                                                 </div>
                                                             </div>
-                                                            @if($goal->milestones->isNotEmpty())
-                                                                <div class="ms-4 mt-2">
-                                                                    @foreach($goal->milestones as $milestone)
-                                                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                                                            <div>
-                                                                                <i class="bi {{ $milestone->is_completed ? 'bi-check-circle-fill text-success' : 'bi-circle' }} me-2"></i>
-                                                                                {{ $milestone->description }}
-                                                                                <small class="text-muted ms-2">Due: {{ $milestone->due_date->format('Y-m-d') }}</small>
+                                                            <div class="ms-4 mt-2">
+                                                                @foreach($goal->milestones as $milestone)
+                                                                    <div class="milestone-item">
+                                                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                            <div class="milestone-content">
+                                                                                <input type="checkbox" class="form-check-input me-2 milestone-checkbox" 
+                                                                                       data-goal-id="{{ $goal->id }}"
+                                                                                       data-milestone-id="{{ $milestone->id }}"
+                                                                                       {{ $milestone->completed ? 'checked' : '' }}>
+                                                                                <span class="milestone-text {{ $milestone->completed ? 'text-decoration-line-through' : '' }}">
+                                                                                    {{ $milestone->description }}
+                                                                                </span>
+                                                                                <small class="text-muted milestone-due-date">Due: {{ $milestone->due_date->format('Y-m-d') }}</small>
                                                                             </div>
                                                                             <div class="btn-group">
-                                                                                <button class="btn btn-sm btn-outline-primary"
-                                                                                        data-bs-toggle="modal"
+                                                                                <button class="btn btn-sm btn-outline-primary" 
+                                                                                        data-bs-toggle="modal" 
                                                                                         data-bs-target="#editMilestoneModal_{{ $goal->id }}_{{ $milestone->id }}">
                                                                                     <i class="bi bi-pencil"></i>
                                                                                 </button>
@@ -183,17 +191,9 @@
                                                                                 </button>
                                                                             </div>
                                                                         </div>
-                                                                    @endforeach
-                                                                </div>
-                                                            @endif
-                                                            <small class="text-muted ms-2">
-                                                                <a href="#" 
-                                                                   class="text-decoration-none text-success"
-                                                                   data-bs-toggle="modal" 
-                                                                   data-bs-target="#addMilestoneModal_{{ $hobby->id }}_{{ $goal->id }}">
-                                                                    <i class="bi bi-plus-circle"></i> Add Milestone
-                                                                </a>
-                                                            </small>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
                                                         </div>
                                                     @endforeach
                                                 </div>
@@ -399,9 +399,15 @@
                                 <label class="form-label">Due Date</label>
                                 <input type="date" class="form-control" 
                                        id="editDueDate_{{ $goal->id }}_{{ $milestone->id }}" 
-                                       value="{{ $milestone->due_date->format('Y-m-d') }}" 
-                                       min="{{ date('Y-m-d') }}"
-                                       max="{{ $goal->deadline->format('Y-m-d') }}" required>
+                                       value="{{ $milestone->due_date->format('Y-m-d') }}" required>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" 
+                                       id="editCompleted_{{ $goal->id }}_{{ $milestone->id }}" 
+                                       {{ $milestone->completed ? 'checked' : '' }}>
+                                <label class="form-check-label">
+                                    Mark as completed
+                                </label>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -418,152 +424,162 @@
     @endforeach
 @endforeach
 
-<!-- Delete Forms -->
-<form id="deleteHobbyForm" method="POST" style="display: none;">
+<!-- Hidden form for deleting milestones -->
+<form id="deleteMilestoneForm" method="POST" style="display: none;">
     @csrf
     @method('DELETE')
 </form>
 
+<!-- Hidden form for deleting goals -->
 <form id="deleteGoalForm" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
+
+<!-- Hidden form for deleting hobbies -->
+<form id="deleteHobbyForm" method="POST" style="display: none;">
     @csrf
     @method('DELETE')
 </form>
 
 @push('scripts')
 <script>
-    // Wait for the DOM to be fully loaded
     document.addEventListener('DOMContentLoaded', function() {
-        // Debug logging
-        console.log('Script loaded');
+        // Handle milestone checkbox clicks
+        document.querySelectorAll('.milestone-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const goalId = this.dataset.goalId;
+                const milestoneId = this.dataset.milestoneId;
+                const completed = this.checked;
+                
+                // Disable the checkbox during the request
+                this.disabled = true;
+                
+                fetch(`/goals/${goalId}/milestones/${milestoneId}/toggle`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ completed })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the milestone text decoration
+                        const milestoneText = this.closest('.milestone-content').querySelector('.milestone-text');
+                        if (completed) {
+                            milestoneText.classList.add('text-decoration-line-through');
+                        } else {
+                            milestoneText.classList.remove('text-decoration-line-through');
+                        }
+                        
+                        // Update goal status if needed
+                        if (data.status === 'completed') {
+                            const goalIcon = document.querySelector(`[data-goal-id="${goalId}"] .bi-circle`);
+                            if (goalIcon) {
+                                goalIcon.classList.remove('bi-circle');
+                                goalIcon.classList.add('bi-check-circle-fill', 'text-success');
+                            }
+                        } else {
+                            const goalIcon = document.querySelector(`[data-goal-id="${goalId}"] .bi-check-circle-fill`);
+                            if (goalIcon) {
+                                goalIcon.classList.remove('bi-check-circle-fill', 'text-success');
+                                goalIcon.classList.add('bi-circle');
+                            }
+                        }
+                    } else {
+                        // If there was an error, revert the checkbox state
+                        this.checked = !completed;
+                        alert('Error updating milestone: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    // If there was an error, revert the checkbox state
+                    this.checked = !completed;
+                    console.error('Error toggling milestone:', error);
+                    alert('Error updating milestone');
+                })
+                .finally(() => {
+                    // Re-enable the checkbox
+                    this.disabled = false;
+                });
+            });
+        });
 
-        // Hobby delete buttons
-        const hobbyDeleteButtons = document.querySelectorAll('.delete-hobby-btn');
-        console.log('Found hobby delete buttons:', hobbyDeleteButtons.length);
-        
-        hobbyDeleteButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                const hobbyId = this.getAttribute('data-hobby-id');
-                console.log('Delete hobby clicked:', hobbyId);
-                if (confirm('Are you sure you want to delete this hobby? All associated goals and milestones will also be deleted.')) {
-                    const form = document.getElementById('deleteHobbyForm');
-                    form.action = `/hobbies/${hobbyId}`;
-                    console.log('Submitting form with action:', form.action);
+        // Handle milestone delete button clicks
+        document.querySelectorAll('.delete-milestone-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                if (confirm('Are you sure you want to delete this milestone?')) {
+                    const goalId = this.dataset.goalId;
+                    const milestoneId = this.dataset.milestoneId;
+                    
+                    const form = document.getElementById('deleteMilestoneForm');
+                    form.action = `/goals/${goalId}/milestones/${milestoneId}`;
                     form.submit();
                 }
             });
         });
 
-        // Goal delete buttons
-        const goalDeleteButtons = document.querySelectorAll('.delete-goal-btn');
-        console.log('Found goal delete buttons:', goalDeleteButtons.length);
-        
-        goalDeleteButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                const goalId = this.getAttribute('data-goal-id');
-                console.log('Delete goal clicked:', goalId);
+        // Handle goal delete button clicks
+        document.querySelectorAll('.delete-goal-btn').forEach(button => {
+            button.addEventListener('click', function() {
                 if (confirm('Are you sure you want to delete this goal? All associated milestones will also be deleted.')) {
                     const form = document.getElementById('deleteGoalForm');
-                    form.action = `/goals/${goalId}`;
-                    console.log('Submitting form with action:', form.action);
+                    form.action = `/goals/${this.dataset.goalId}`;
+                    form.submit();
+                }
+            });
+        });
+
+        // Handle hobby delete button clicks
+        document.querySelectorAll('.delete-hobby-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                if (confirm('Are you sure you want to delete this hobby? All associated goals and milestones will also be deleted.')) {
+                    const form = document.getElementById('deleteHobbyForm');
+                    form.action = `/hobbies/${this.dataset.hobbyId}`;
                     form.submit();
                 }
             });
         });
     });
-</script>
-<script>
-function updateMilestone(goalId, milestoneId) {
-    const description = document.getElementById(`editDescription_${goalId}_${milestoneId}`).value;
-    const dueDate = document.getElementById(`editDueDate_${goalId}_${milestoneId}`).value;
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-    if (!description.trim()) {
-        showAlert('Description cannot be empty', 'danger');
-        return;
-    }
-
-    if (!dueDate) {
-        showAlert('Due date is required', 'danger');
-        return;
-    }
-
-    fetch(`/goals/${goalId}/milestones/${milestoneId}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-            description: description,
-            due_date: dueDate
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            showAlert('Failed to update milestone', 'danger');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert('Failed to update milestone', 'danger');
-    });
-}
-
-// Handle milestone delete button clicks
-document.querySelectorAll('.delete-milestone-btn').forEach(button => {
-    button.addEventListener('click', function() {
-        const goalId = this.dataset.goalId;
-        const milestoneId = this.dataset.milestoneId;
+    function updateMilestone(goalId, milestoneId) {
+        const description = document.getElementById(`editDescription_${goalId}_${milestoneId}`).value;
+        const dueDate = document.getElementById(`editDueDate_${goalId}_${milestoneId}`).value;
+        const completed = document.getElementById(`editCompleted_${goalId}_${milestoneId}`).checked;
         
-        if (confirm('Are you sure you want to delete this milestone?')) {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-            
-            fetch(`/goals/${goalId}/milestones/${milestoneId}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const milestoneElement = this.closest('.d-flex');
-                    milestoneElement.remove();
-                    showAlert('Milestone deleted successfully', 'success');
-                } else {
-                    showAlert('Failed to delete milestone', 'danger');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showAlert('Failed to delete milestone', 'danger');
-            });
+        if (!description.trim()) {
+            alert('Description cannot be empty');
+            return;
         }
-    });
-});
 
-function showAlert(message, type) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    const container = document.querySelector('.container');
-    container.insertBefore(alertDiv, container.firstChild);
-
-    // Auto dismiss alert after 3 seconds
-    setTimeout(() => {
-        alertDiv.remove();
-    }, 3000);
-}
+        fetch(`/goals/${goalId}/milestones/${milestoneId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                description: description,
+                due_date: dueDate,
+                completed: completed
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Failed to update milestone: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating milestone:', error);
+            alert('Failed to update milestone');
+        });
+    }
 </script>
 @endpush

@@ -115,26 +115,38 @@ class GoalController extends Controller
 
     public function toggleMilestone(Request $request, Goal $goal, $milestoneId)
     {
-        $milestone = $goal->milestones()->findOrFail($milestoneId);
-        $milestone->update(['completed' => $request->completed]);
+        try {
+            $milestone = $goal->milestones()->findOrFail($milestoneId);
+            $milestone->update(['completed' => $request->completed]);
 
-        // Calculate new progress based on completed milestones
-        $totalMilestones = $goal->milestones()->count();
-        $completedMilestones = $goal->milestones()->where('completed', true)->count();
-        
-        $progress = $totalMilestones > 0 ? round(($completedMilestones / $totalMilestones) * 100) : 0;
-        
-        // Update goal progress and status
-        $goal->update([
-            'progress' => $progress,
-            'status' => $progress == 100 ? 'completed' : 'in-progress'
-        ]);
+            // Calculate new progress based on completed milestones
+            $totalMilestones = $goal->milestones()->count();
+            $completedMilestones = $goal->milestones()->where('completed', true)->count();
+            
+            $progress = $totalMilestones > 0 ? round(($completedMilestones / $totalMilestones) * 100) : 0;
+            
+            // Update goal progress and status
+            $goal->update([
+                'progress' => $progress,
+                'status' => $progress == 100 ? 'completed' : 'in-progress'
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'progress' => $progress,
-            'status' => $goal->status
-        ]);
+            // Refresh the goal to get updated data
+            $goal = $goal->fresh();
+
+            return response()->json([
+                'success' => true,
+                'progress' => $progress,
+                'status' => $goal->status,
+                'completed' => $milestone->completed
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error toggling milestone: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update milestone status'
+            ], 500);
+        }
     }
 
     public function destroy(Goal $goal)
@@ -241,4 +253,6 @@ class GoalController extends Controller
         }
     }
 }
+
+
 

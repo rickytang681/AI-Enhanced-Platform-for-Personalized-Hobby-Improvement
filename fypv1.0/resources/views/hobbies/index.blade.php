@@ -102,15 +102,12 @@
                                                             <i class="bi {{ $goal->status === 'completed' ? 'bi-check-circle-fill text-success' : 'bi-circle' }} me-2"></i>
                                                             {{ $goal->goal }}
                                                             <small class="text-muted ms-2">
+                                                                <i class="bi bi-calendar-event"></i> Due: {{ $goal->deadline->format('Y-m-d') }}
+                                                            </small>
+                                                            <small class="text-muted ms-2">
                                                                 <a href="/recommendation?hobby_id={{ $hobby->id }}&goal_id={{ $goal->id }}" 
                                                                    class="text-decoration-none text-primary">
                                                                     <i class="bi bi-lightbulb"></i> Get Recommendation
-                                                                </a>
-                                                                <a href="#" 
-                                                                   class="text-decoration-none text-success ms-2"
-                                                                   data-bs-toggle="modal" 
-                                                                   data-bs-target="#addMilestoneModal_{{ $hobby->id }}_{{ $goal->id }}">
-                                                                    <i class="bi bi-plus-circle"></i> Add Milestone
                                                                 </a>
                                                             </small>
                                                         </div>
@@ -127,18 +124,23 @@
                                                             </button>
                                                         </div>
                                                     </div>
-                                                    @if($goal->milestones->isNotEmpty())
-                                                        <div class="ms-4 mt-2">
-                                                            @foreach($goal->milestones as $milestone)
-                                                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                                                    <div>
-                                                                        <i class="bi {{ $milestone->is_completed ? 'bi-check-circle-fill text-success' : 'bi-circle' }} me-2"></i>
-                                                                        {{ $milestone->description }}
-                                                                        <small class="text-muted ms-2">Due: {{ $milestone->due_date->format('Y-m-d') }}</small>
+                                                    <div class="ms-4 mt-2">
+                                                        @foreach($goal->milestones as $milestone)
+                                                            <div class="milestone-item">
+                                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                    <div class="milestone-content">
+                                                                        <input type="checkbox" class="form-check-input me-2 milestone-checkbox" 
+                                                                               data-goal-id="{{ $goal->id }}"
+                                                                               data-milestone-id="{{ $milestone->id }}"
+                                                                               {{ $milestone->completed ? 'checked' : '' }}>
+                                                                        <span class="milestone-text {{ $milestone->completed ? 'text-decoration-line-through' : '' }}">
+                                                                            {{ $milestone->description }}
+                                                                        </span>
+                                                                        <small class="text-muted milestone-due-date">Due: {{ $milestone->due_date->format('Y-m-d') }}</small>
                                                                     </div>
                                                                     <div class="btn-group">
-                                                                        <button class="btn btn-sm btn-outline-primary"
-                                                                                data-bs-toggle="modal"
+                                                                        <button class="btn btn-sm btn-outline-primary" 
+                                                                                data-bs-toggle="modal" 
                                                                                 data-bs-target="#editMilestoneModal_{{ $goal->id }}_{{ $milestone->id }}">
                                                                             <i class="bi bi-pencil"></i>
                                                                         </button>
@@ -150,9 +152,9 @@
                                                                         </button>
                                                                     </div>
                                                                 </div>
-                                                            @endforeach
-                                                        </div>
-                                                    @endif
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
                                                 </div>
                                             @endforeach
                                         </div>
@@ -406,6 +408,64 @@
             });
         });
 
+        // Handle milestone checkbox clicks
+        document.querySelectorAll('.milestone-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const goalId = this.dataset.goalId;
+                const milestoneId = this.dataset.milestoneId;
+                const completed = this.checked;
+                
+                // Disable the checkbox during the request
+                this.disabled = true;
+                
+                // Get the milestone text element
+                const milestoneText = this.closest('.milestone-content').querySelector('.milestone-text');
+                
+                fetch(`/goals/${goalId}/milestones/${milestoneId}/toggle`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ completed })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Update the UI to reflect the new state
+                        if (completed) {
+                            milestoneText.classList.add('text-decoration-line-through');
+                        } else {
+                            milestoneText.classList.remove('text-decoration-line-through');
+                        }
+                        
+                        console.log('Milestone updated successfully');
+                    } else {
+                        // If there was an error, revert the checkbox state
+                        this.checked = !completed;
+                        console.error('Error from server:', data.message);
+                        alert('Error updating milestone: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    // If there was an error, revert the checkbox state
+                    this.checked = !completed;
+                    console.error('Error toggling milestone:', error);
+                    alert('Error updating milestone');
+                })
+                .finally(() => {
+                    // Re-enable the checkbox
+                    this.disabled = false;
+                });
+            });
+        });
+
         // Auto-hide alerts after 5 seconds
         setTimeout(function() {
             document.querySelectorAll('.alert').forEach(alert => {
@@ -433,6 +493,7 @@
     function updateMilestone(goalId, milestoneId) {
         const description = document.getElementById(`editDescription_${goalId}_${milestoneId}`).value;
         const dueDate = document.getElementById(`editDueDate_${goalId}_${milestoneId}`).value;
+        const completed = document.getElementById(`editCompleted_${goalId}_${milestoneId}`)?.checked || false;
         
         if (!description.trim()) {
             alert('Description cannot be empty');
@@ -448,7 +509,8 @@
             },
             body: JSON.stringify({
                 description: description,
-                due_date: dueDate
+                due_date: dueDate,
+                completed: completed
             })
         })
         .then(response => response.json())
@@ -456,7 +518,7 @@
             if (data.success) {
                 window.location.reload();
             } else {
-                alert('Failed to update milestone');
+                alert(data.message || 'Failed to update milestone');
             }
         })
         .catch(error => {
@@ -491,6 +553,10 @@
 @endpush
 
 @endsection
+
+
+
+
 
 
 

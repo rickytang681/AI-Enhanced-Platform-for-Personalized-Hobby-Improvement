@@ -61,10 +61,10 @@ Route::middleware(['auth'])->group(function () {
             ->name('goals.milestones.destroy');
         
         // Toggle milestone completion status
-        Route::post('goals/{goal}/milestones/{milestone}/toggle', [MilestoneController::class, 'toggle']);
-        Route::patch('goals/{goal}/milestones/{milestone}/toggle', 
+        Route::post('goals/{goal}/milestones/{milestone}/toggle', 
             [MilestoneController::class, 'toggle'])
-            ->name('goals.milestones.toggle');
+            ->name('goals.milestones.toggle')
+            ->middleware('auth');
     });
 
     // Profile
@@ -163,6 +163,9 @@ Route::get('/api/goals/{goal}/milestones', function ($goal) {
         })
     ]);
 });
+
+
+
 
 
 
