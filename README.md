@@ -10,6 +10,10 @@ php artisan migrate:fresh --seed
 add stronge/
 php artisan storage:link 
 
+php artisan test --testsuite=Unit
+php artisan test --testsuite=Feature
+
+--------------------------
 
 + composer create-project laravel/laravel:8.* practical6
 + composer require laravel/ui --dev
@@ -23,7 +27,7 @@ select .env.example file remove the .example
 If prompted, rerun 
 + npm run dev
 
-
+--------------------------
 
 ReactJS Scaffolding
 

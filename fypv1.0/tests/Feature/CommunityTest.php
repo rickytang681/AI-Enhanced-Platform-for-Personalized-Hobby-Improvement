@@ -194,12 +194,98 @@ class CommunityTest extends TestCase
         $response->assertStatus(403);
     }
 
+    public function test_user_can_filter_posts_by_tag()
+    {
+        // Create posts with different tags
+        $discussionPost = Community::factory()->create([
+            'user_id' => $this->user->id,
+            'tag' => 'Discussion',
+            'title' => 'Discussion Post'
+        ]);
+        
+        $questionPost = Community::factory()->create([
+            'user_id' => $this->user->id,
+            'tag' => 'Question',
+            'title' => 'Question Post'
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->get('/community?tag=Discussion');
+
+        $response->assertStatus(200)
+            ->assertSee($discussionPost->title)
+            ->assertDontSee($questionPost->title);
+    }
+
+    public function test_user_can_search_posts()
+    {
+        // Create posts with specific titles
+        Community::factory()->create([
+            'user_id' => $this->user->id,
+            'title' => 'Unique Search Title'
+        ]);
+        Community::factory()->create([
+            'user_id' => $this->user->id,
+            'title' => 'Different Title'
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->get('/community?search=Unique');
+
+        $response->assertStatus(200)
+            ->assertSee('Unique Search Title')
+            ->assertDontSee('Different Title');
+    }
+
+    public function test_user_can_sort_posts()
+    {
+        // Clear any existing posts
+        Community::query()->delete();
+
+        // Create posts with different timestamps
+        $oldPost = Community::factory()->create([
+            'user_id' => $this->user->id,
+            'created_at' => now()->subDays(2),
+            'title' => 'Old Post',
+            'content' => 'Old Content',
+            'post_type' => 'discussion',
+            'tag' => 'General'
+        ]);
+
+        sleep(1); // Ensure different timestamps
+
+        $newPost = Community::factory()->create([
+            'user_id' => $this->user->id,
+            'created_at' => now(),
+            'title' => 'New Post',
+            'content' => 'New Content',
+            'post_type' => 'discussion',
+            'tag' => 'General'
+        ]);
+
+        // Test newest sort
+        $response = $this->actingAs($this->user)
+            ->get('/community?sort=newest');
+
+        $response->assertStatus(200)
+            ->assertSeeInOrder([
+                $newPost->title,
+                $oldPost->title
+            ]);
+    }
+
     protected function tearDown(): void
     {
         Storage::fake('public')->deleteDirectory('community-images');
         parent::tearDown();
     }
 }
+
+
+
+
+
+
 
 
 

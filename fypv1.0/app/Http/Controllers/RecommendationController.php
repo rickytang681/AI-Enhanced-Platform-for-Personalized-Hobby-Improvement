@@ -40,19 +40,34 @@ class RecommendationController extends Controller
 
     public function getRecommendations(Request $request)
     {
+        $validator = validator($request->all(), [
+            'selected_hobbies' => 'required|array|min:1',
+            'selected_hobbies.*' => 'exists:hobbies,id',
+            'selected_goals' => 'required|array|min:1',
+            'selected_goals.*' => 'exists:goals,id'
+        ], [
+            'selected_hobbies.required' => 'Please select at least one hobby.',
+            'selected_hobbies.min' => 'Please select at least one hobby.',
+            'selected_goals.required' => 'Please select at least one goal.',
+            'selected_goals.min' => 'Please select at least one goal.'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
         try {
             $user = auth()->user();
-            
-            // Log the incoming request for debugging
-            \Log::info('Recommendation Request:', $request->all());
-            
-            // Validate request
-            $validated = $request->validate([
-                'selected_hobbies' => 'required|array|size:1',
-                'selected_hobbies.*' => 'exists:hobbies,id',
-                'selected_goals' => 'required|array|size:1',
-                'selected_goals.*' => 'exists:goals,id'
-            ]);
+            $validated = $validator->validated();
+
+            // Check if the selected hobbies belong to the authenticated user
+            $userHobbies = $user->hobbies()->whereIn('id', $validated['selected_hobbies'])->get();
+            if ($userHobbies->count() !== count($validated['selected_hobbies'])) {
+                return response()->json(['error' => 'Unauthorized access to hobbies'], 403);
+            }
 
             // Get selected hobbies with their goals and milestones
             $hobbies = $user->hobbies()
@@ -213,17 +228,21 @@ class RecommendationController extends Controller
     public function destroy($id)
     {
         try {
-            $recommendation = Recommendation::where('user_id', auth()->id())
-                                          ->where('id', $id)
-                                          ->firstOrFail();
-            $recommendation->delete();
+            $recommendation = Recommendation::findOrFail($id);
+            
+            if ($recommendation->user_id !== auth()->id()) {
+                return response()->json(['error' => 'Unauthorized access'], 403);
+            }
 
+            $recommendation->delete();
             return response()->json(['success' => true]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['error' => 'Recommendation not found'], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'error' => 'Failed to delete recommendation.'
-            ]);
+            ], 500);
         }
     }
 }

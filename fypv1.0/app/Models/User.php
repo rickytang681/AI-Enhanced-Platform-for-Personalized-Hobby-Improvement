@@ -26,6 +26,11 @@ class User extends Authenticatable
         return $this->hasMany(Hobby::class);
     }
 
+    public function libraryItems()
+    {
+        return $this->hasMany(LibraryItem::class);
+    }
+
     public function libraryComments()
     {
         return $this->hasMany(LibraryComment::class);

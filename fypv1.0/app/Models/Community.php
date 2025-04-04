@@ -72,3 +72,4 @@ class Community extends Model
     }
 }
 
+

@@ -118,13 +118,15 @@ class AuthenticationTest extends TestCase
 
     public function test_login_with_incorrect_password()
     {
+        // Create user with a unique email
+        $email = 'test.user.' . time() . '@example.com';
         $user = User::factory()->create([
-            'email' => 'test@example.com',
+            'email' => $email,
             'password' => Hash::make('correct_password')
         ]);
 
         $response = $this->post('/login', [
-            'email' => 'test@example.com',
+            'email' => $email,
             'password' => 'wrong_password'
         ]);
 

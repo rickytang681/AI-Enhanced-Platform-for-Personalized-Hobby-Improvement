@@ -41,9 +41,22 @@ class LibraryItem extends Model
         parent::boot();
 
         static::deleting(function($item) {
+            // Delete the physical file if it exists
             if ($item->file_path) {
                 Storage::disk('public')->delete($item->file_path);
             }
+
+            // Delete related comments
+            $item->comments()->delete();
+
+            // Delete related reactions
+            $item->reactions()->delete();
+
+            // Delete related ratings
+            $item->ratings()->delete();
+
+            // Delete related saves
+            $item->saves()->delete();
         });
     }
 
@@ -158,6 +171,7 @@ class LibraryItem extends Model
         return $query->orderBy('created_at', 'desc');
     }
 }
+
 
 
 

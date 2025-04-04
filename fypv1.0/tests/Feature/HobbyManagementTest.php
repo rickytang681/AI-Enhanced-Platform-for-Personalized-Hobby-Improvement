@@ -8,7 +8,6 @@ use App\Models\Hobby;
 use App\Models\Goal;
 use App\Models\Milestone;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Auth;
 
 class HobbyManagementTest extends TestCase
 {
@@ -21,15 +20,9 @@ class HobbyManagementTest extends TestCase
     {
         parent::setUp();
         
-        // Create a test user
         $this->user = User::factory()->create();
-        
-        // Create a sample hobby
         $this->hobby = Hobby::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'Test Hobby',
-            'description' => 'Test Description',
-            'experience_level' => 'Beginner'
+            'user_id' => $this->user->id
         ]);
     }
 
@@ -129,7 +122,7 @@ class HobbyManagementTest extends TestCase
     public function test_user_can_edit_and_delete_hobbies()
     {
         // Test editing hobby
-        $response = $this->actingAs($this->user)->put("/hobbies/{$this->hobby->id}", [
+        $response = $this->actingAs($this->user)->put("/hobbies/{$this->hobby->id}/update", [
             'name' => 'Updated Hobby',
             'description' => 'Updated Description',
             'experience_level' => 'Intermediate'
@@ -253,9 +246,77 @@ class HobbyManagementTest extends TestCase
         $response->assertSessionHasErrors(['name', 'description', 'experience_level']);
     }
 
-    protected function tearDown(): void
+    public function test_user_can_track_progress()
     {
-        parent::tearDown();
+        // Create a hobby first
+        $hobby = Hobby::factory()->create([
+            'user_id' => $this->user->id,
+            'name' => 'Test Hobby',
+            'description' => 'Test Description'
+        ]);
+
+        // Create a goal
+        $goal = Goal::create([
+            'user_id' => $this->user->id,
+            'hobby_id' => $hobby->id,
+            'goal' => 'Test Goal',
+            'deadline' => now()->addDays(30)->format('Y-m-d'),
+            'progress' => 0,
+            'status' => 'not_started'
+        ]);
+
+        // Update the progress
+        $response = $this->actingAs($this->user)
+            ->patch("/goals/{$goal->id}/progress", [
+                'progress' => 50,
+                'status' => 'in_progress'
+            ]);
+
+        $response->assertRedirect();
+        
+        $goal->refresh();
+        $this->assertEquals(50, $goal->progress);
+        $this->assertEquals('in_progress', $goal->status);
+    }
+
+    public function test_user_can_set_goal_deadlines()
+    {
+        $hobby = Hobby::factory()->create([
+            'user_id' => $this->user->id,
+            'name' => 'Test Hobby',
+            'description' => 'Test Description'
+        ]);
+
+        $milestones = [
+            [
+                'description' => 'First milestone',
+                'due_date' => now()->addDays(10)->format('Y-m-d')
+            ],
+            [
+                'description' => 'Second milestone',
+                'due_date' => now()->addDays(20)->format('Y-m-d')
+            ]
+        ];
+
+        $goalData = [
+            'hobby_id' => $hobby->id,
+            'goal' => 'Test Goal with Deadline',
+            'deadline' => now()->addDays(30)->format('Y-m-d'),
+            'status' => 'not_started',
+            'progress' => 0,
+            'milestones' => json_encode($milestones)
+        ];
+
+        $response = $this->actingAs($this->user)
+            ->post('/goals', $goalData);
+
+        $response->assertRedirect();
+
+        $createdGoal = Goal::where('goal', 'Test Goal with Deadline')->first();
+        $this->assertNotNull($createdGoal);
+        $this->assertEquals($goalData['goal'], $createdGoal->goal);
+        $this->assertEquals($goalData['deadline'], $createdGoal->deadline);
+        $this->assertEquals(2, $createdGoal->milestones()->count());
     }
 }
 

@@ -96,7 +96,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/community', [CommunityController::class, 'store'])->name('community.store');
         Route::get('/community/my-posts', [CommunityController::class, 'getMyPosts'])->name('community.my-posts');
         Route::get('/community/{community}', [CommunityController::class, 'show'])->name('community.show');
-        Route::put('/community/{community}', [CommunityController::class, 'updatePost'])->name('community.update');
         Route::delete('/community/{community}', [CommunityController::class, 'destroy'])->name('community.destroy');
         Route::post('/community/{community}/comment', [CommunityController::class, 'addComment'])->name('community.comment');
         Route::get('/community/{community}/comments', [CommunityController::class, 'getComments'])->name('community.comments');
@@ -123,13 +122,14 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/system/community-comments/{comment}', [SystemController::class, 'deleteCommunityComment'])->name('system.deleteCommunityComment');
     });
 
-    // Hobby Management
-    Route::controller(HobbyController::class)->group(function () {
-        Route::get('/hobbies', 'index')->name('hobbies.index');
-        Route::post('/hobbies', 'store')->name('hobbies.store');
-        Route::get('/hobbies/{hobby}/edit', 'edit')->name('hobbies.edit');
-        Route::put('/hobbies/{hobby}', 'update')->name('hobbies.update');
-        Route::delete('/hobbies/{hobby}', 'destroy')->name('hobbies.destroy');
+    // Hobby Routes
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/hobbies', [HobbyController::class, 'index'])->name('hobbies.index');
+        Route::post('/hobbies', [HobbyController::class, 'store'])->name('hobbies.store');
+        Route::get('/hobbies/create', [HobbyController::class, 'create'])->name('hobbies.create');
+        Route::get('/hobbies/{hobby}', [HobbyController::class, 'show'])->name('hobbies.show');
+        Route::put('/hobbies/{hobby}/update', [HobbyController::class, 'update'])->name('hobbies.update');
+        Route::delete('/hobbies/{hobby}', [HobbyController::class, 'destroy'])->name('hobbies.destroy');
     });
 
     Route::resource('hobbies', HobbyController::class)->middleware('auth');
@@ -163,6 +163,15 @@ Route::get('/api/goals/{goal}/milestones', function ($goal) {
         })
     ]);
 });
+
+
+
+
+
+
+
+
+
 
 
 
