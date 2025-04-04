@@ -103,9 +103,9 @@ class HobbyManagementTest extends TestCase
         // Verify initial state
         $this->assertFalse($milestone->completed);
 
-        // Toggle milestone completion
+        // Toggle milestone completion - use POST instead of PATCH since that's what the route accepts
         $response = $this->actingAs($this->user)
-            ->patch("/goals/{$goal->id}/milestones/{$milestone->id}/toggle");
+            ->post("/goals/{$goal->id}/milestones/{$milestone->id}/toggle");
 
         // If it fails, let's see the actual error
         if ($response->status() === 500) {
@@ -113,7 +113,7 @@ class HobbyManagementTest extends TestCase
         }
 
         $response->assertSuccessful();
-        
+
         // Verify the milestone was toggled
         $milestone->refresh();
         $this->assertTrue($milestone->completed);
@@ -262,21 +262,31 @@ class HobbyManagementTest extends TestCase
             'goal' => 'Test Goal',
             'deadline' => now()->addDays(30)->format('Y-m-d'),
             'progress' => 0,
-            'status' => 'not_started'
+            'status' => 'in-progress'
         ]);
 
-        // Update the progress
-        $response = $this->actingAs($this->user)
-            ->patch("/goals/{$goal->id}/progress", [
-                'progress' => 50,
-                'status' => 'in_progress'
-            ]);
+        // Create two milestones
+        $milestone1 = $goal->milestones()->create([
+            'description' => 'First Milestone',
+            'due_date' => now()->addDays(10),
+            'completed' => false
+        ]);
 
-        $response->assertRedirect();
+        $milestone2 = $goal->milestones()->create([
+            'description' => 'Second Milestone',
+            'due_date' => now()->addDays(20),
+            'completed' => false
+        ]);
+
+        // Mark one milestone as completed (50% progress)
+        $response = $this->actingAs($this->user)
+            ->post("/goals/{$goal->id}/milestones/{$milestone1->id}/toggle");
+
+        $response->assertSuccessful();
         
         $goal->refresh();
         $this->assertEquals(50, $goal->progress);
-        $this->assertEquals('in_progress', $goal->status);
+        $this->assertEquals('in-progress', $goal->status);
     }
 
     public function test_user_can_set_goal_deadlines()
@@ -287,39 +297,28 @@ class HobbyManagementTest extends TestCase
             'description' => 'Test Description'
         ]);
 
-        $milestones = [
-            [
-                'description' => 'First milestone',
-                'due_date' => now()->addDays(10)->format('Y-m-d')
-            ],
-            [
-                'description' => 'Second milestone',
-                'due_date' => now()->addDays(20)->format('Y-m-d')
-            ]
-        ];
-
-        $goalData = [
-            'hobby_id' => $hobby->id,
-            'goal' => 'Test Goal with Deadline',
-            'deadline' => now()->addDays(30)->format('Y-m-d'),
-            'status' => 'not_started',
-            'progress' => 0,
-            'milestones' => json_encode($milestones)
-        ];
-
+        // Create goal with required milestones
         $response = $this->actingAs($this->user)
-            ->post('/goals', $goalData);
+            ->post('/goals', [
+                'hobby_id' => $hobby->id,
+                'goal' => 'Test Goal with Deadline',
+                'deadline' => now()->addDays(30)->format('Y-m-d'),
+                'milestones' => ['First milestone', 'Second milestone'],
+                'milestone_dates' => [
+                    now()->addDays(10)->format('Y-m-d'),
+                    now()->addDays(20)->format('Y-m-d')
+                ]
+            ]);
 
         $response->assertRedirect();
-
+        
         $createdGoal = Goal::where('goal', 'Test Goal with Deadline')->first();
         $this->assertNotNull($createdGoal);
-        $this->assertEquals($goalData['goal'], $createdGoal->goal);
-        $this->assertEquals($goalData['deadline'], $createdGoal->deadline);
+        $this->assertEquals('Test Goal with Deadline', $createdGoal->goal);
+        $this->assertEquals(now()->addDays(30)->format('Y-m-d'), $createdGoal->deadline->format('Y-m-d'));
+        
+        // Verify milestones were created
         $this->assertEquals(2, $createdGoal->milestones()->count());
     }
 }
-
-
-
 

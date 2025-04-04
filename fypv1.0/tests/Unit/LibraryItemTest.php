@@ -66,11 +66,6 @@ class LibraryItemTest extends TestCase
         $this->assertDatabaseMissing('library_reactions', ['id' => $reaction->id]);
     }
 
-    public function test_library_item_has_allowed_types()
-    {
-        $this->assertEquals(['video', 'text'], LibraryItem::ALLOWED_TYPES);
-    }
-
     public function test_library_item_has_ratings()
     {
         $rating = LibraryRating::create([

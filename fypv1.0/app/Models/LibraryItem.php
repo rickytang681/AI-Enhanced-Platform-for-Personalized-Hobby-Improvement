@@ -34,7 +34,7 @@ class LibraryItem extends Model
     ];
 
     // Add type validation constant
-    const ALLOWED_TYPES = ['video', 'text'];
+    const ALLOWED_TYPES = ['video', 'text', 'link', 'document'];
 
     protected static function boot()
     {
@@ -171,6 +171,7 @@ class LibraryItem extends Model
         return $query->orderBy('created_at', 'desc');
     }
 }
+
 
 
 

@@ -387,6 +387,7 @@ class LibraryController extends Controller
             'description' => 'required|string|max:1000',
             'category' => 'required|string|max:50',
             'subcategory' => 'required|string|max:50',
+            'content' => 'nullable|string', // Add content field
         ]);
 
         $item->update($validated);
@@ -421,5 +422,6 @@ class LibraryController extends Controller
         ]);
     }
 }
+
 
 
