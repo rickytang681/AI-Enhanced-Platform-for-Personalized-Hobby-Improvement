@@ -72,7 +72,67 @@ class CommunitySeeder extends Seeder
                 'content' => 'Let\'s discuss essential photography equipment for beginners. What should be the first investments after getting a basic camera?',
                 'post_type' => 'discussion',
                 'tag' => 'Photography'
-            ]
+            ],
+            [
+                'title' => 'Looking for photography buddies in NYC',
+                'content' => 'Hi everyone! I\'m looking for fellow photographers to explore NYC with. Anyone interested in a weekend photowalk?',
+                'post_type' => 'discussion',
+                'tag' => 'Photography'
+            ],
+            [
+                'title' => 'Guitar string recommendations?',
+                'content' => 'I\'ve been playing acoustic guitar for about a year now and looking to replace my strings. Any recommendations for a warm, rich tone?',
+                'post_type' => 'question',
+                'tag' => 'Music'
+            ],
+            [
+                'title' => 'Share your latest painting!',
+                'content' => 'Let\'s inspire each other! Share your latest painting and tell us about your process.',
+                'post_type' => 'discussion',
+                'tag' => 'Art'
+            ],
+            [
+                'title' => 'Best cookbooks for beginners?',
+                'content' => 'I\'m just starting my cooking journey and looking for beginner-friendly cookbooks. What would you recommend?',
+                'post_type' => 'question',
+                'tag' => 'Cooking'
+            ],
+            [
+                'title' => 'Yoga retreat experiences',
+                'content' => 'Has anyone been to a yoga retreat? I\'m considering booking one for next summer and would love to hear about your experiences.',
+                'post_type' => 'question',
+                'tag' => 'Fitness'
+            ],
+            [
+                'title' => 'Chess tournament this weekend',
+                'content' => 'I\'m organizing an online chess tournament this weekend. All skill levels welcome! Comment if you\'re interested.',
+                'post_type' => 'discussion',
+                'tag' => 'Games'
+            ],
+            [
+                'title' => 'Learning React vs Angular',
+                'content' => 'I\'m a beginner in web development and trying to decide between learning React or Angular first. Any advice?',
+                'post_type' => 'question',
+                'tag' => 'Technology'
+            ],
+            [
+                'title' => 'Knitting pattern exchange',
+                'content' => 'Let\'s exchange our favorite knitting patterns! I\'ll start - I love this simple beanie pattern: [link]',
+                'post_type' => 'discussion',
+                'tag' => 'Arts & Crafts'
+            ],
+            [
+                'title' => 'Dance studio recommendations in Chicago',
+                'content' => 'Recently moved to Chicago and looking for a good dance studio that offers various styles. Any recommendations?',
+                'post_type' => 'question',
+                'tag' => 'Dancing'
+            ],
+            [
+                'title' => 'Writing prompt challenge',
+                'content' => 'Weekly writing prompt: Write a short story that begins with "The door opened to reveal..."',
+                'post_type' => 'discussion',
+                'tag' => 'Writing'
+            ],
         ];
 
         $comments = [
@@ -90,11 +150,15 @@ class CommunitySeeder extends Seeder
 
         foreach ($communityPosts as $postData) {
             // Create community post with random user
-            $post = Community::create(array_merge($postData, [
+            $post = Community::create([
+                'title' => $postData['title'],
+                'content' => $postData['content'],
+                'post_type' => $postData['post_type'],
+                'tag' => $postData['tag'],
                 'user_id' => $allUserIds[array_rand($allUserIds)],
                 'created_at' => now()->subDays(rand(1, 30)),
                 'updated_at' => now()->subDays(rand(1, 30))
-            ]));
+            ]);
 
             // Add random reactions (likes/dislikes)
             $numReactions = min(rand(2, 5), $userCount); // Ensure we don't exceed user count
@@ -142,3 +206,5 @@ class CommunitySeeder extends Seeder
         }
     }
 }
+
+

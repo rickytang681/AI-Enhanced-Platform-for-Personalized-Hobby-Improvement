@@ -78,7 +78,87 @@ class LibrarySeeder extends Seeder
                 'content' => 'Advanced topics in digital photography including post-processing and special effects.',
                 'category' => 'Photography',
                 'subcategory' => 'Advanced'
-            ]
+            ],
+            [
+                'title' => 'Advanced Photography Techniques',
+                'description' => 'Master advanced photography skills and techniques.',
+                'type' => 'text',
+                'content' => 'Learn about exposure triangle, composition rules, and post-processing techniques.',
+                'category' => 'Photography',
+                'subcategory' => 'Advanced'
+            ],
+            [
+                'title' => 'Landscape Photography Guide',
+                'description' => 'Capture stunning landscape photos in any environment.',
+                'type' => 'video',
+                'content' => 'https://example.com/landscape-photography',
+                'category' => 'Photography',
+                'subcategory' => 'Landscape'
+            ],
+            [
+                'title' => 'Piano Basics for Beginners',
+                'description' => 'Start your piano journey with these fundamental lessons.',
+                'type' => 'text',
+                'content' => 'Learn about piano keys, basic chords, and simple songs to practice.',
+                'category' => 'Music',
+                'subcategory' => 'Piano'
+            ],
+            [
+                'title' => 'Watercolor Painting Techniques',
+                'description' => 'Essential techniques for watercolor painting.',
+                'type' => 'video',
+                'content' => 'https://example.com/watercolor-techniques',
+                'category' => 'Arts & Crafts',
+                'subcategory' => 'Painting'
+            ],
+            [
+                'title' => 'Italian Cooking Masterclass',
+                'description' => 'Learn to cook authentic Italian dishes from scratch.',
+                'type' => 'text',
+                'content' => 'Recipes and techniques for pasta, pizza, and classic Italian sauces.',
+                'category' => 'Food & Drink',
+                'subcategory' => 'Cooking'
+            ],
+            [
+                'title' => 'Yoga for Beginners',
+                'description' => 'Start your yoga practice with these beginner-friendly poses.',
+                'type' => 'video',
+                'content' => 'https://example.com/yoga-beginners',
+                'category' => 'Fitness',
+                'subcategory' => 'Yoga'
+            ],
+            [
+                'title' => 'Chess Opening Strategies',
+                'description' => 'Master the most effective chess openings.',
+                'type' => 'text',
+                'content' => 'Learn about popular openings like the Sicilian Defense and Queen\'s Gambit.',
+                'category' => 'Games',
+                'subcategory' => 'Chess'
+            ],
+            [
+                'title' => 'Web Development Fundamentals',
+                'description' => 'Essential skills for modern web development.',
+                'type' => 'video',
+                'content' => 'https://example.com/web-dev-basics',
+                'category' => 'Technology',
+                'subcategory' => 'Coding'
+            ],
+            [
+                'title' => 'Knitting Patterns for Beginners',
+                'description' => 'Simple knitting patterns perfect for beginners.',
+                'type' => 'text',
+                'content' => 'Step-by-step instructions for scarves, hats, and simple home decor items.',
+                'category' => 'Arts & Crafts',
+                'subcategory' => 'Knitting'
+            ],
+            [
+                'title' => 'Salsa Dancing Tutorial',
+                'description' => 'Learn the basics of salsa dancing.',
+                'type' => 'video',
+                'content' => 'https://example.com/salsa-basics',
+                'category' => 'Performing Arts',
+                'subcategory' => 'Dancing'
+            ],
         ];
 
         $comments = [

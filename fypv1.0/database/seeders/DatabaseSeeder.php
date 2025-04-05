@@ -17,13 +17,13 @@ class DatabaseSeeder extends Seeder
         $adminId = DB::table('users')->insertGetId([
             'name' => 'Admin User',
             'email' => 'admin@gmail.com',
-            'password' => Hash::make('698321rtrh'),
+            'password' => Hash::make('password123'),
             'role' => 'admin',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
-        // Create 5 Regular Users
+        // Create 10 Regular Users (increased from 5)
         $users = [
             [
                 'name' => 'John Smith',
@@ -60,8 +60,31 @@ class DatabaseSeeder extends Seeder
                 'email' => 'rickyt@gmail.com',
                 'password' => Hash::make('698321rtrh'),
                 'role' => 'user',
-                'created_at' => now(),
-                'updated_at' => now(),
+            ],
+            // Add more users
+            [
+                'name' => 'Lisa Wong',
+                'email' => 'lisa@gmail.com',
+                'password' => Hash::make('password123'),
+                'role' => 'user',
+            ],
+            [
+                'name' => 'James Miller',
+                'email' => 'james@gmail.com',
+                'password' => Hash::make('password123'),
+                'role' => 'user',
+            ],
+            [
+                'name' => 'Olivia Garcia',
+                'email' => 'olivia@gmail.com',
+                'password' => Hash::make('password123'),
+                'role' => 'user',
+            ],
+            [
+                'name' => 'Daniel Lee',
+                'email' => 'daniel@gmail.com',
+                'password' => Hash::make('password123'),
+                'role' => 'user',
             ]
         ];
 
@@ -79,8 +102,11 @@ class DatabaseSeeder extends Seeder
         // Create Library Items with interactions
         $this->call([
             LibrarySeeder::class,
-            GoalSeeder::class,
             CommunitySeeder::class,
+            // HobbySeeder now handles both hobbies and goals
+            HobbySeeder::class,
         ]);
     }
 }
+
+
