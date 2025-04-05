@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('tag');
             $table->enum('post_type', ['question', 'experience', 'discussion']);
             $table->timestamps();
+            $table->softDeletes(); // Add soft deletes
         });
     }
 

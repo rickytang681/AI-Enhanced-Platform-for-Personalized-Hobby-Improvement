@@ -86,6 +86,7 @@ class MilestoneController extends Controller
                 throw new \Exception('Invalid milestone for this goal');
             }
 
+            // Use delete instead of forceDelete to soft delete
             $milestone->delete();
             
             // Recalculate goal progress
@@ -166,6 +167,8 @@ class MilestoneController extends Controller
         }
     }
 }
+
+
 
 
 
