@@ -62,7 +62,7 @@
                                     </button>
                                 </div>
                                 <div class="recommendation-content">
-                                    {!! nl2br(e($recommendation->content)) !!}
+                                    {!! $recommendation->content !!}
                                 </div>
                             </div>
                         </div>
@@ -198,9 +198,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 newCard.className = 'card mb-3 recommendation-card';
                 newCard.dataset.id = data.recommendation_id;
                 
-                // Convert newlines to <br> tags for proper formatting
-                const formattedContent = data.recommendations.replace(/\n/g, '<br>');
-                
                 newCard.innerHTML = `
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
@@ -210,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </button>
                         </div>
                         <div class="recommendation-content">
-                            ${formattedContent}
+                            ${data.recommendations}
                         </div>
                     </div>
                 `;
@@ -268,3 +265,58 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
+
+<style>
+    .recommendation-content {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+    }
+    
+    .recommendation-content h3 {
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #333;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 0.5rem;
+    }
+    
+    .recommendation-content strong {
+        font-weight: 600;
+        color: #444;
+        display: block;
+        margin-top: 0.75rem;
+    }
+    
+    .recommendation-content p {
+        margin-bottom: 0.75rem;
+        padding-left: 1rem;
+    }
+    
+    .recommendation-item {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .recommendation-content ul {
+        padding-left: 2rem;
+        margin-bottom: 1rem;
+        list-style-type: disc;
+    }
+    
+    .recommendation-content li {
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Additional styles for better formatting */
+    .recommendation-content br {
+        display: block;
+        margin: 5px 0;
+    }
+    
+    .recommendation-content p:empty {
+        display: none;
+    }
+</style>
