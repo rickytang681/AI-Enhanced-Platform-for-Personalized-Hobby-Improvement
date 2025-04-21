@@ -4,6 +4,28 @@
 <div class="container">
     <h1>System Administration</h1>
 
+    <!-- API Key Management Section -->
+    <div class="section mb-4">
+        <h2>API Key Management</h2>
+        <div class="card">
+            <div class="card-body">
+                <form id="updateApiKeyForm" class="row g-3">
+                    @csrf
+                    <div class="col-md-8">
+                        <label for="api_key" class="form-label">API Key</label>
+                        <input type="text" class="form-control" id="api_key" name="api_key" value="{{ env('RAPIDAPI_KEY', '') }}" required>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">Update API Key</button>
+                    </div>
+                    <div class="col-12">
+                        <div id="apiKeyStatus" class="mt-2" style="display: none;"></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Add User Section -->
     <div class="section mb-4">
         <h2>Add New User</h2>
@@ -340,6 +362,54 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // API Key Management
+    const updateApiKeyForm = document.getElementById('updateApiKeyForm');
+    const apiKeyStatus = document.getElementById('apiKeyStatus');
+    
+    updateApiKeyForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const apiKey = document.getElementById('api_key').value.trim();
+        if (!apiKey) {
+            apiKeyStatus.style.display = 'block';
+            apiKeyStatus.className = 'alert alert-danger';
+            apiKeyStatus.textContent = 'API key cannot be empty';
+            return;
+        }
+        
+        try {
+            const response = await fetch('{{ route("system.updateApiKey") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ api_key: apiKey })
+            });
+
+            const responseData = await response.json();
+            
+            apiKeyStatus.style.display = 'block';
+            if (response.ok && responseData.success) {
+                apiKeyStatus.className = 'alert alert-success';
+                apiKeyStatus.textContent = 'API key updated successfully';
+            } else {
+                apiKeyStatus.className = 'alert alert-danger';
+                apiKeyStatus.textContent = responseData.message || 'Error updating API key';
+            }
+            
+            setTimeout(() => {
+                apiKeyStatus.style.display = 'none';
+            }, 5000);
+        } catch (error) {
+            console.error('Error:', error);
+            apiKeyStatus.style.display = 'block';
+            apiKeyStatus.className = 'alert alert-danger';
+            apiKeyStatus.textContent = 'Error updating API key';
+        }
+    });
+
     // Add User Form Submission
     const addUserForm = document.getElementById('addUserForm');
     addUserForm.addEventListener('submit', async (e) => {

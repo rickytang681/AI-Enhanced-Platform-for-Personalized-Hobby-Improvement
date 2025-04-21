@@ -120,6 +120,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/system/comments/{comment}', [SystemController::class, 'deleteComment'])->name('system.deleteComment');
         Route::delete('/system/community-posts/{post}', [SystemController::class, 'deleteCommunityPost'])->name('system.deleteCommunityPost');
         Route::delete('/system/community-comments/{comment}', [SystemController::class, 'deleteCommunityComment'])->name('system.deleteCommunityComment');
+        Route::post('/system/api-key', [SystemController::class, 'updateApiKey'])->name('system.updateApiKey');
     });
 
     // Hobby Routes
@@ -163,6 +164,10 @@ Route::get('/api/goals/{goal}/milestones', function ($goal) {
         })
     ]);
 });
+
+
+
+
 
 
 

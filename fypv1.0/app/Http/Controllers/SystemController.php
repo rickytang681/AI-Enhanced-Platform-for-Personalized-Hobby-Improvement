@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Artisan;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 
 class SystemController extends Controller
 {
@@ -232,5 +235,118 @@ class SystemController extends Controller
                 'message' => 'Error deleting community comment'
             ], 500);
         }
+    }
+
+    public function updateApiKey(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'api_key' => 'required|string',
+            ]);
+
+            // Update the .env file
+            $this->updateEnvFile('RAPIDAPI_KEY', $validated['api_key']);
+
+            // Clear config cache to apply changes
+            Artisan::call('config:clear');
+
+            Log::info('API key updated successfully');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'API key updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error updating API key', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating API key: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function testApiConnection(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'api_key' => 'required|string',
+            ]);
+
+            $client = new Client([
+                'verify' => false  // Disable SSL verification
+            ]);
+            
+            $apiUrl = 'https://chatgpt-42.p.rapidapi.com/o3mini';
+            $apiHost = 'chatgpt-42.p.rapidapi.com';
+            
+            $response = $client->request('POST', $apiUrl, [
+                'body' => json_encode([
+                    'messages' => [
+                        [
+                            'role' => 'user',
+                            'content' => 'Test connection'
+                        ]
+                    ],
+                    'web_access' => false
+                ]),
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'x-rapidapi-host' => $apiHost,
+                    'x-rapidapi-key' => $validated['api_key'],
+                ]
+            ]);
+
+            $statusCode = $response->getStatusCode();
+            
+            if ($statusCode >= 200 && $statusCode < 300) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'API connection successful'
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'API connection failed with status code: ' . $statusCode
+                ], 400);
+            }
+        } catch (GuzzleException $e) {
+            Log::error('API connection test failed', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'API connection failed: ' . $e->getMessage()
+            ], 500);
+        } catch (\Exception $e) {
+            Log::error('Error testing API connection', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error testing API connection: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function updateEnvFile($key, $value)
+    {
+        $path = base_path('.env');
+        
+        if (file_exists($path)) {
+            $escaped = preg_quote('=');
+            $pattern = "/^{$key}{$escaped}(.*)/m";
+            
+            if (preg_match($pattern, file_get_contents($path))) {
+                // Update existing key
+                file_put_contents($path, preg_replace(
+                    $pattern,
+                    "{$key}={$value}",
+                    file_get_contents($path)
+                ));
+            } else {
+                // Add new key
+                file_put_contents($path, file_get_contents($path) . "\n{$key}={$value}\n");
+            }
+            
+            return true;
+        }
+        
+        return false;
     }
 }

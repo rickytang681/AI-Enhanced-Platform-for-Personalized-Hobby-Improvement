@@ -156,8 +156,7 @@ class RecommendationController extends Controller
                - If the user is struggling with motivation, include tips on setting small, achievable goals and tracking progress.  
                - If the user is advanced, focus on refining skills, exploring new techniques, or tackling challenging projects.  
             
-            Now, generate the recommendations based on the provided context. Ensure the output is clear, actionable, and tailored to the user's needs.
-            And remove ** and bolding the important sentence";
+            Now, generate the recommendations based on the provided context And remove ** and bolding the important sentence. Ensure the output is clear, actionable, and tailored to the user's needs.";
 
             $client = new Client([
                 'verify' => false,
